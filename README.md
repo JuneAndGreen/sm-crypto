@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-npm install --save smjs
+npm install --save sm-crypto
 ```
 
 ## sm2
