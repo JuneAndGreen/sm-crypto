@@ -81,7 +81,7 @@ function doSignature(msg, privateKey, { pointPool, der, hash, publicKey } = {}) 
 
     if (hash) {
         // sm3杂凑
-        let publicKey = publicKey || getPublicKeyFromPrivateKey(privateKey);
+        publicKey = publicKey || getPublicKeyFromPrivateKey(privateKey);
         hashHex = doSm3Hash(hashHex, publicKey);
     }
 
