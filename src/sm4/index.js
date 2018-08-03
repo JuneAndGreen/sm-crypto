@@ -65,19 +65,19 @@ function sms4Crypt(input, output, roundKey) {
     for(r = 0; r < 32; r += 4) {
         mid = x[1] ^ x[2] ^ x[3] ^ roundKey[r + 0];
         mid = byteSub(mid);
-        x[0] = x[0] ^ l1(mid); //x4
+        x[0] = x[0] ^ l1(mid); // x4
         
         mid = x[2] ^ x[3] ^ x[0] ^ roundKey[r + 1];
         mid = byteSub(mid);
-        x[1] = x[1] ^ l1(mid); //x5
+        x[1] = x[1] ^ l1(mid); // x5
         
         mid = x[3] ^ x[0] ^ x[1] ^ roundKey[r + 2];
         mid = byteSub(mid);
-        x[2] = x[2] ^ l1(mid); //x6
+        x[2] = x[2] ^ l1(mid); // x6
         
         mid = x[0] ^ x[1] ^ x[2] ^ roundKey[r + 3];
         mid = byteSub(mid);
-        x[3] = x[3] ^ l1(mid); //x7
+        x[3] = x[3] ^ l1(mid); // x7
     }
     
     //Reverse
@@ -111,22 +111,22 @@ function sms4KeyExt(key, roundKey, cryptFlag) {
     for(r = 0; r < 32; r += 4) {
         mid = x[1] ^ x[2] ^ x[3] ^ CK[r+0];
         mid = byteSub(mid);
-        roundKey[r + 0] = x[0] ^= l2(mid); //roundKey0=K4
+        roundKey[r + 0] = x[0] ^= l2(mid); // roundKey0 = K4
         
         mid = x[2] ^ x[3] ^ x[0] ^ CK[r+1];
         mid = byteSub(mid);
-        roundKey[r + 1] = x[1] ^= l2(mid); //roundKey1=K5
+        roundKey[r + 1] = x[1] ^= l2(mid); // roundKey1 = K5
         
         mid = x[3] ^ x[0] ^ x[1] ^ CK[r+2];
         mid = byteSub(mid);
-        roundKey[r + 2] = x[2] ^= l2(mid); //roundKey2=K6
+        roundKey[r + 2] = x[2] ^= l2(mid); // roundKey2 = K6
         
         mid = x[0] ^ x[1] ^ x[2] ^ CK[r + 3];
         mid = byteSub(mid);
-        roundKey[r + 3] = x[3] ^= l2(mid); //roundKey3=K7
+        roundKey[r + 3] = x[3] ^= l2(mid); // roundKey3 = K7
     }
         
-    //解密时轮密钥使用顺序：roundKey31,roundKey30,...,roundKey0
+    // 解密时轮密钥使用顺序：roundKey31, roundKey30, ..., roundKey0
     if(cryptFlag === DECRYPT) {
         for(r = 0; r < 16; r++) {
             mid = roundKey[r];
