@@ -2,6 +2,8 @@
 
 国密算法sm2、sm3和sm4的js版。
 
+> PS: 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
+
 ## 安装
 
 ```bash
