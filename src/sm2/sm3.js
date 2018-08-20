@@ -1,4 +1,4 @@
-const { BigInteger } = require('./big-integer');
+const { BigInteger } = require('jsbn');
 const _ = require('./utils');
 
 let copyArray = function (sourceArray, sourceIndex, destinationArray, destinationIndex, length) {

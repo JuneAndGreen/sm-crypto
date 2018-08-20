@@ -1,4 +1,4 @@
-const { BigInteger } = require('./big-integer');
+const { BigInteger } = require('jsbn');
 const { encodeDer, decodeDer } = require('./asn1');
 const { ECCurveFp, ECPointFp } = require ('./ec');
 const SM3Digest = require('./sm3');

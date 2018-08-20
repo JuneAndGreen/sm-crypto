@@ -1,6 +1,5 @@
-const { BigInteger } = require('./big-integer');
+const { BigInteger, SecureRandom } = require('jsbn');
 const { ECCurveFp } = require ('./ec');
-const SecureRandom = require('./rng');
 
 let rng = new SecureRandom();
 let { G, curve, n } = generateEcparam();
