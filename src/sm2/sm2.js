@@ -54,7 +54,7 @@ class SM2Cipher {
     encryptBlock(data) {
         this.sm3c3.blockUpdate(data, 0, data.length);
         for (let i = 0; i < data.length; i++) {
-            if (this.keyOff == this.key.length) {
+            if (this.keyOff === this.key.length) {
                 this.nextKey()
             }
             data[i] ^= this.key[this.keyOff++]
@@ -68,7 +68,7 @@ class SM2Cipher {
 
     decryptBlock(data) {
         for (let i = 0; i < data.length; i++) {
-            if (this.keyOff == this.key.length) {
+            if (this.keyOff === this.key.length) {
                 this.nextKey()
             }
             data[i] ^= this.key[this.keyOff++]

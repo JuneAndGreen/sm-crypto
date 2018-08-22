@@ -1,13 +1,12 @@
 const { BigInteger } = require('jsbn');
 const { encodeDer, decodeDer } = require('./asn1');
-const { ECCurveFp, ECPointFp } = require ('./ec');
+const { ECPointFp } = require ('./ec');
 const SM3Digest = require('./sm3');
 const SM2Cipher = require('./sm2');
 const _ = require('./utils');
 
 let { G, curve, n } = _.generateEcparam();
 const C1C2C3 = 0;
-const C1C3C2 = 1;
 
 /**
  * 加密

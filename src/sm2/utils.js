@@ -105,7 +105,7 @@ function arrayToHex(arr) {
  * 转成utf8串
  */
 function arrayToUtf8(arr) {
-    const words = [];
+    let words = [];
     let j = 0;
     for (let i = 0; i < arr.length * 2; i += 2) {
         words[i >>> 3] |= parseInt(arr[j]) << (24 - (i % 8) * 4);
@@ -113,10 +113,10 @@ function arrayToUtf8(arr) {
     }
 
     try {
-        const latin1Chars = [];
+        let latin1Chars = [];
 
         for (let i = 0; i < arr.length; i++) {
-            const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+            let bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
             latin1Chars.push(String.fromCharCode(bite));
         }
 

@@ -90,7 +90,7 @@ class ECPointFp {
     }
 
     isInfinity() {
-        if ((this.x == null) && (this.y == null)) return true;
+        if ((this.x === null) && (this.y === null)) return true;
         return this.z.equals(BigInteger.ZERO) && !this.y.toBigInteger().equals(BigInteger.ZERO);
     }
 
@@ -116,8 +116,6 @@ class ECPointFp {
 
         let x1 = this.x.toBigInteger();
         let y1 = this.y.toBigInteger();
-        let x2 = b.x.toBigInteger();
-        let y2 = b.y.toBigInteger();
 
         let v2 = v.square();
         let v3 = v2.multiply(v);
@@ -196,9 +194,7 @@ class ECPointFp {
             if (j.testBit(i)) {
                 if (k.testBit(i)) R = R.add(both);
                 else R = R.add(this);
-            } else {
-                if (k.testBit(i)) R = R.add(x);
-            }
+            } else if (k.testBit(i)) R = R.add(x);
             --i;
         }
 
@@ -206,7 +202,6 @@ class ECPointFp {
     }
 
     static decodeFromHex(curve, encHex) {
-        let type = encHex.substr(0, 2); // shall be '04'
         let dataLen = encHex.length - 2;
 
         // Extract x and y as byte arrays
@@ -268,9 +263,9 @@ class ECCurveFp {
             case 4:
             case 6:
             case 7:
-                var len = (s.length - 2) / 2;
-                var xHex = s.substr(2, len);
-                var yHex = s.substr(len+2, len);
+                let len = (s.length - 2) / 2;
+                let xHex = s.substr(2, len);
+                let yHex = s.substr(len+2, len);
 
                 return new ECPointFp(this, this.fromBigInteger(new BigInteger(xHex, 16)), this.fromBigInteger(new BigInteger(yHex, 16)));
 
