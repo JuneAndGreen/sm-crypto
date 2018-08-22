@@ -205,7 +205,7 @@ function CF(V, Bi) {
         E = P0(TT2);
     }
 
-    return xor(Array(A, B, C, D, E, F, G, H).join(''), V);
+    return xor([A, B, C, D, E, F, G, H].join(''), V);
 }
 
 module.exports = function(str) {

@@ -2,7 +2,7 @@ const { BigInteger, SecureRandom } = require('jsbn');
 const { ECCurveFp } = require ('./ec');
 
 let rng = new SecureRandom();
-let { G, curve, n } = generateEcparam();
+let { G, n } = generateEcparam();
 
  /**
  * 生成ecparam
@@ -105,18 +105,18 @@ function arrayToHex(arr) {
  * 转成utf8串
  */
 function arrayToUtf8(arr) {
-    var words = [];
-    var j = 0;
-    for (var i = 0; i < arr.length * 2; i += 2) {
+    const words = [];
+    let j = 0;
+    for (let i = 0; i < arr.length * 2; i += 2) {
         words[i >>> 3] |= parseInt(arr[j]) << (24 - (i % 8) * 4);
         j++
     }
 
     try {
-        var latin1Chars = [];
+        const latin1Chars = [];
 
-        for (var i = 0; i < arr.length; i++) {
-            var bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+        for (let i = 0; i < arr.length; i++) {
+            const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
             latin1Chars.push(String.fromCharCode(bite));
         }
 
