@@ -159,13 +159,13 @@ function doVerifySignature(msg, signHex, publicKey, { der, hash } = {}) {
 /**
  * sm3杂凑算法
  */
-function doSm3Hash(msg, publicKey) {
+function doSm3Hash(hashHex, publicKey) {
     let smDigest = new SM3Digest();
     
     let z = new SM3Digest().getZ(G, publicKey.substr(2, 128));
     let zValue = _.hexToArray(_.arrayToHex(z).toString());
     
-    let p = typeof msg === 'string' ? _.parseUtf8StringToHex(msg) : _.parseArrayBufferToHex(msg);
+    let p = hashHex;
     let pValue = _.hexToArray(p);
     
     let hashData = new Array(smDigest.getDigestSize());
