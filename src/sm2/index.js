@@ -38,7 +38,7 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
  * 解密
  */
 function doDecrypt(encryptData, privateKey, cipherMode = 1) {
-    let cipher = new SM2Cipher(cipherMode);
+    let cipher = new SM2Cipher();
 
     privateKey = new BigInteger(privateKey, 16);
 
@@ -62,7 +62,7 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1) {
     let c3_ = new Array(32);
     cipher.doFinal(c3_);
 
-    let isDecrypt = _.arrayToHex(c3_) == c3;
+    let isDecrypt = _.arrayToHex(c3_) === c3;
 
     if (isDecrypt) {
         let decryptData = _.arrayToUtf8(data);

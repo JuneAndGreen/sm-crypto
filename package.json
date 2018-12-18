@@ -4,7 +4,7 @@
   "description": "sm-crypto",
   "main": "index.js",
   "scripts": {
-    "test": "jest test/**/*.test.js",
+    "test": "jest test/*.test.js",
     "build": "webpack"
   },
   "repository": {
@@ -17,7 +17,8 @@
     "crypto"
   ],
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "jsdom",
+    "testURL": "https://jest.test"
   },
   "author": "june_01",
   "license": "MIT",

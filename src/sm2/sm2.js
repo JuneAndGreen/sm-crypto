@@ -22,7 +22,7 @@ class SM2Cipher {
         this.sm3c3.blockUpdate(xWords, 0, xWords.length);
         this.sm3keybase.blockUpdate(yWords, 0, yWords.length);
         this.ct = 1;
-        this.nextKey()
+        this.nextKey();
     }
 
     nextKey() {
@@ -33,7 +33,7 @@ class SM2Cipher {
         sm3keycur.update((this.ct & 0x00ff));
         sm3keycur.doFinal(this.key, 0);
         this.keyOff = 0;
-        this.ct++
+        this.ct++;
     }
 
     initEncipher(userKey) {
@@ -41,7 +41,7 @@ class SM2Cipher {
         let k = new BigInteger(keypair.privateKey, 16);
         let publicKey = keypair.publicKey;
 
-        this.p2 = userKey.multiply(k);
+        this.p2 = userKey.multiply(k); // [k](Pb)
         this.reset();
 
         if (publicKey.length > 128) {
@@ -55,38 +55,38 @@ class SM2Cipher {
         this.sm3c3.blockUpdate(data, 0, data.length);
         for (let i = 0; i < data.length; i++) {
             if (this.keyOff === this.key.length) {
-                this.nextKey()
+                this.nextKey();
             }
-            data[i] ^= this.key[this.keyOff++]
+            data[i] ^= this.key[this.keyOff++];
         }
     }
 
     initDecipher(userD, c1) {
         this.p2 = c1.multiply(userD);
-        this.reset()
+        this.reset();
     }
 
     decryptBlock(data) {
         for (let i = 0; i < data.length; i++) {
             if (this.keyOff === this.key.length) {
-                this.nextKey()
+                this.nextKey();
             }
-            data[i] ^= this.key[this.keyOff++]
+            data[i] ^= this.key[this.keyOff++];
         }
-        this.sm3c3.blockUpdate(data, 0, data.length)
+        this.sm3c3.blockUpdate(data, 0, data.length);
     }
 
     doFinal(c3) {
         let yWords = _.hexToArray(this.p2.getY().toBigInteger().toRadix(16));
         this.sm3c3.blockUpdate(yWords, 0, yWords.length);
         this.sm3c3.doFinal(c3, 0);
-        this.reset()
+        this.reset();
     }
     
     createPoint(x, y) {
         let publicKey = '04' + x + y;
         let point = ECPointFp.decodeFromHex(_.generateEcparam().curve, publicKey);
-        return point
+        return point;
     }
 }
 
