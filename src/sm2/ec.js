@@ -17,7 +17,7 @@ class ECFieldElementFp {
     constructor(q, x) {
         this.x = x;
         this.q = q;
-        // TODO if(x.compareTo(q) >= 0) error
+        // TODO if (x.compareTo(q) >= 0) error
     }
 
     /**
@@ -232,30 +232,29 @@ class ECPointFp {
     }
 
     /**
-     * 相乘
+     * 倍点计算
      */
     multiply(k) {
         if (this.isInfinity()) return this;
         if (k.signum() == 0) return this.curve.infinity;
 
-        let e = k;
-        let h = e.multiply(THREE);
-
+        // 使用加减法
+        let k3 = k.multiply(THREE);
         let neg = this.negate();
-        let R = this;
+        let Q = this;
 
-        for (let i = h.bitLength() - 2; i > 0; i--) {
-            R = R.twice();
+        for (let i = k3.bitLength() - 2; i > 0; i--) {
+            Q = Q.twice();
 
-            let hBit = h.testBit(i);
-            let eBit = e.testBit(i);
+            let k3Bit = k3.testBit(i);
+            let kBit = k.testBit(i);
 
-            if (hBit != eBit) {
-                R = R.add(hBit ? this : neg);
+            if (k3Bit !== kBit) {
+                Q = Q.add(k3Bit ? this : neg);
             }
         }
 
-        return R;
+        return Q;
     }
 }
 
