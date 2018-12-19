@@ -139,7 +139,7 @@ function doVerifySignature(msg, signHex, publicKey, { der, hash } = {}) {
         s = new BigInteger(signHex.substring(64), 16);
     }
 
-    let PA = ECPointFp.decodeFromHex(curve, publicKey);
+    let PA = curve.decodePointHex(publicKey);
     let e = new BigInteger(hashHex, 16);
 
     // t = (r + s) mod n
@@ -191,7 +191,7 @@ function getPublicKeyFromPrivateKey(privateKey) {
  */
 function getPoint() {
     let keypair = _.generateKeyPairHex();
-    let PA = ECPointFp.decodeFromHex(curve, keypair.publicKey);
+    let PA = curve.decodePointHex(keypair.publicKey);
 
     keypair.k = new BigInteger(keypair.privateKey, 16);
     keypair.x1 = PA.getX().toBigInteger();

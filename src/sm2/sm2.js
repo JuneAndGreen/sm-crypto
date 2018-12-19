@@ -85,7 +85,7 @@ class SM2Cipher {
     
     createPoint(x, y) {
         let publicKey = '04' + x + y;
-        let point = ECPointFp.decodeFromHex(_.generateEcparam().curve, publicKey);
+        let point = _.getGlobalCurve().decodePointHex(publicKey);
         return point;
     }
 }
