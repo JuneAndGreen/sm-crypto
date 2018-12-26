@@ -57,7 +57,7 @@ class SM2Cipher {
             if (this.keyOff === this.key.length) {
                 this.nextKey();
             }
-            data[i] ^= this.key[this.keyOff++];
+            data[i] ^= this.key[this.keyOff++] & 0xff;
         }
     }
 
@@ -71,7 +71,7 @@ class SM2Cipher {
             if (this.keyOff === this.key.length) {
                 this.nextKey();
             }
-            data[i] ^= this.key[this.keyOff++];
+            data[i] ^= this.key[this.keyOff++] & 0xff;
         }
         this.sm3c3.blockUpdate(data, 0, data.length);
     }
