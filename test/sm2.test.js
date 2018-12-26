@@ -27,16 +27,12 @@ test('encrypt and decrypt data', () => {
 
     expect(decryptData).toBe(msgString);
 
-    // TODO：这里有问题
-    let err = [];
     for (let i = 0; i < 1000; i++) {
         let encryptData = sm2.doEncrypt(msgString, publicKey, cipherMode);
         let decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode);
 
-        if (decryptData !== msgString) err.push(i);
-        // expect(decryptData).toBe(msgString);
+        expect(decryptData).toBe(msgString);
     }
-    console.log('error times: ', err.length);
 });
 
 test('sign data and verify sign', () => {
