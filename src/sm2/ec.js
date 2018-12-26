@@ -84,7 +84,7 @@ class ECPointFp {
         this.x = x;
         this.y = y;
         // 标准射影坐标系：zinv == null 或 z * zinv == 1
-        this.z = z == null ? BigInteger.ONE : z;
+        this.z = z === undefined ? BigInteger.ONE : z;
         this.zinv = null;
         //TODO: compression flag
     }
@@ -209,7 +209,7 @@ class ECPointFp {
      */
     twice() {
         if (this.isInfinity()) return this;
-        if (this.y.toBigInteger().signum() == 0) return this.curve.infinity;
+        if (!this.y.toBigInteger().signum()) return this.curve.infinity;
 
         let x1 = this.x.toBigInteger();
         let y1 = this.y.toBigInteger();
@@ -236,7 +236,7 @@ class ECPointFp {
      */
     multiply(k) {
         if (this.isInfinity()) return this;
-        if (k.signum() == 0) return this.curve.infinity;
+        if (!k.signum()) return this.curve.infinity;
 
         // 使用加减法
         let k3 = k.multiply(THREE);

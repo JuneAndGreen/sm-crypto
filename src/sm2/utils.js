@@ -94,7 +94,7 @@ function arrayToHex(arr) {
     let words = [];
     let j = 0;
     for (let i = 0; i < arr.length * 2; i += 2) {
-        words[i >>> 3] |= parseInt(arr[j]) << (24 - (i % 8) * 4);
+        words[i >>> 3] |= parseInt(arr[j], 10) << (24 - (i % 8) * 4);
         j++;
     }
     
@@ -116,7 +116,7 @@ function arrayToUtf8(arr) {
     let words = [];
     let j = 0;
     for (let i = 0; i < arr.length * 2; i += 2) {
-        words[i >>> 3] |= parseInt(arr[j]) << (24 - (i % 8) * 4);
+        words[i >>> 3] |= parseInt(arr[j], 10) << (24 - (i % 8) * 4);
         j++
     }
 
