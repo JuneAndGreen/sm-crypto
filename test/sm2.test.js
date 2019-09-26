@@ -66,6 +66,16 @@ test('sign data and verify sign', () => {
     });
     expect(verifyResult4).toBe(true);
 
+    for (let i = 0; i < 100; i++) {
+        sigValueHex4 = sm2.doSignature(msgString, privateKey, {
+            hash: true,
+        });
+        verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey, {
+            hash: true,
+        });
+        expect(verifyResult4).toBe(true);
+    }
+
     // 纯签名 + 生成椭圆曲线点 + sm3杂凑（不做公钥推导）
     let sigValueHex5 = sm2.doSignature(msgString, privateKey, {
         hash: true,
