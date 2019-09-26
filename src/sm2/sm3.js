@@ -180,10 +180,10 @@ class SM3Digest {
     }
 
     intToBigEndian(n, bs, off) {
-        bs[off] = Int32.parseByte(this.urShift(n, 24));
-        bs[++off] = Int32.parseByte(this.urShift(n, 16));
-        bs[++off] = Int32.parseByte(this.urShift(n, 8));
-        bs[++off] = Int32.parseByte(n);
+        bs[off] = Int32.parseByte(this.urShift(n, 24)) & 0xff;
+        bs[++off] = Int32.parseByte(this.urShift(n, 16)) & 0xff;
+        bs[++off] = Int32.parseByte(this.urShift(n, 8)) & 0xff;
+        bs[++off] = Int32.parseByte(n) & 0xff;
     }
 
     doFinal(out_Renamed, outOff) {

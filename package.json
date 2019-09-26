@@ -1,10 +1,10 @@
 {
   "name": "sm-crypto",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "sm-crypto",
   "main": "index.js",
   "scripts": {
-    "test": "jest test/*.test.js",
+    "test": "jest ./test/*",
     "build": "webpack"
   },
   "repository": {
