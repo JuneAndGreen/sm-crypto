@@ -111,8 +111,7 @@ class SM3Digest {
         let ww = this.X;
         let ww_ = new Array(64);
         for (i = 16; i < 68; i++) {
-            ww[i] = this.p1(ww[i - 16] ^ ww[i - 9] ^ (this.rotate(ww[i - 3], 15))) ^ (this.rotate(ww[i - 13], 7)) ^ ww[
-                i - 6];
+            ww[i] = this.p1(ww[i - 16] ^ ww[i - 9] ^ (this.rotate(ww[i - 3], 15))) ^ (this.rotate(ww[i - 13], 7)) ^ ww[i - 6];
         }
         for (i = 0; i < 64; i++) {
             ww_[i] = ww[i] ^ ww[i + 4];
