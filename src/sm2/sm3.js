@@ -306,7 +306,7 @@ class SM3Digest {
             if (typeof userId !== 'string') {
                 throw new Error(`sm2: Type of userId Must be String! Receive Type: ${typeof userId}`);
             }
-            if(userId.length >= 8192) {
+            if (userId.length >= 8192) {
                 throw new Error(`sm2: The Length of userId Must Less Than 8192! Length: ${userId.length}`);
             }
 
@@ -315,7 +315,7 @@ class SM3Digest {
         }
         this.update((len >> 8 & 0x00ff));
         this.update((len & 0x00ff));
-        if(userId) {
+        if (userId) {
             let userIdWords = _.hexToArray(userId);
             this.blockUpdate(userIdWords, 0, userIdWords.length);
         }
