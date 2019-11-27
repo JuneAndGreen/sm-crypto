@@ -302,7 +302,10 @@ class SM3Digest {
     // ZA=H256(ENTLA ∥ IDA ∥ a ∥ b ∥ xG ∥ yG ∥xA ∥yA)
     getZ(g, publicKey, userId) {
         if (userId && typeof userId !== 'string') {
-            throw new Error(`Type of userId Must be String! Receive Type: ${typeof userId}`)
+            throw new Error(`sm2: Type of userId Must be String! Receive Type: ${typeof userId}`)
+        }
+        if(userId.length >= 8192) {
+            throw new Error(`sm2: The Length of userId Must Less Than 8192! Length: ${userId.length}`)
         }
         if (userId) {
             userId = _.parseUtf8StringToHex(userId)
