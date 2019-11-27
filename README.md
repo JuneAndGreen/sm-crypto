@@ -76,7 +76,7 @@ let verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey, {
     publicKey,
 });
 
-// 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加userId
+// 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加userId(长度小于8192)
 let sigValueHex6 = sm2.doSignature(msgString, privateKey, {
     hash: true,
     publicKey,
