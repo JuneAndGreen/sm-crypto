@@ -299,13 +299,21 @@ class SM3Digest {
         return returnV;
     }
 
-    getZ(g, publicKey) {
-        let userId = _.parseUtf8StringToHex('1234567812345678');
-        let len = userId.length * 4;
+    // ZA=H256(ENTLA ∥ IDA ∥ a ∥ b ∥ xG ∥ yG ∥xA ∥yA)
+    getZ(g, publicKey, userId) {
+        if (userId && typeof userId !== 'string') {
+            throw new Error(`Type of userId Must be String! Receive Type: ${typeof userId}`)
+        }
+        if (userId) {
+            userId = _.parseUtf8StringToHex(userId)
+        }
+        let len = userId ? userId.length * 4 : 0;
         this.update((len >> 8 & 0x00ff));
         this.update((len & 0x00ff));
-        let userIdWords = _.hexToArray(userId);
-        this.blockUpdate(userIdWords, 0, userIdWords.length);
+        if(userId) {
+            let userIdWords = _.hexToArray(userId);
+            this.blockUpdate(userIdWords, 0, userIdWords.length);
+        }
         let aWords = _.hexToArray(g.curve.a.toBigInteger().toRadix(16));
         let bWords = _.hexToArray(g.curve.b.toBigInteger().toRadix(16));
         let gxWords = _.hexToArray(g.getX().toBigInteger().toRadix(16));

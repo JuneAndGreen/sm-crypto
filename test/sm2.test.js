@@ -40,7 +40,7 @@ test('sign data and verify sign', () => {
     let sigValueHex = sm2.doSignature(msgString, privateKey);
     let verifyResult = sm2.doVerifySignature(msgString, sigValueHex, publicKey);
     expect(verifyResult).toBe(true);
-    
+
     // 纯签名
     let sigValueHex2 = sm2.doSignature(msgString, privateKey, {
         pointPool: [sm2.getPoint(), sm2.getPoint(), sm2.getPoint(), sm2.getPoint()],
@@ -86,4 +86,23 @@ test('sign data and verify sign', () => {
         publicKey,
     });
     expect(verifyResult5).toBe(true);
+
+    // 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加userId
+    let sigValueHex6 = sm2.doSignature(msgString, privateKey, {
+        hash: true,
+        publicKey,
+        userId: 'testUserId',
+    });
+    let verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
+        hash: true,
+        userId: 'testUserId',
+    });
+    expect(verifyResult6).toBe(true);
+    let verifyResult6False = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
+        hash: true,
+        userId: 'wrongTestUserId',
+    });
+    expect(verifyResult6False).toBe(false);
+
+
 });
