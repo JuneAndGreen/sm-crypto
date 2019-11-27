@@ -301,16 +301,18 @@ class SM3Digest {
 
     // ZA=H256(ENTLA ∥ IDA ∥ a ∥ b ∥ xG ∥ yG ∥xA ∥yA)
     getZ(g, publicKey, userId) {
-        if (userId && typeof userId !== 'string') {
-            throw new Error(`sm2: Type of userId Must be String! Receive Type: ${typeof userId}`)
-        }
-        if(userId.length >= 8192) {
-            throw new Error(`sm2: The Length of userId Must Less Than 8192! Length: ${userId.length}`)
-        }
+        let len = 0;
         if (userId) {
-            userId = _.parseUtf8StringToHex(userId)
+            if (typeof userId !== 'string') {
+                throw new Error(`sm2: Type of userId Must be String! Receive Type: ${typeof userId}`);
+            }
+            if(userId.length >= 8192) {
+                throw new Error(`sm2: The Length of userId Must Less Than 8192! Length: ${userId.length}`);
+            }
+
+            userId = _.parseUtf8StringToHex(userId);
+            len = userId.length * 4;
         }
-        let len = userId ? userId.length * 4 : 0;
         this.update((len >> 8 & 0x00ff));
         this.update((len & 0x00ff));
         if(userId) {
