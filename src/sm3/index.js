@@ -36,7 +36,8 @@ function hex2binary(hex) {
  */
 function str2binary(str) {
   let binary = ''
-  for (const ch of str) {
+  for (let i = 0, len = str.length; i < len; i++) {
+    const ch = str[i]
     binary += leftPad(ch.codePointAt(0).toString(2), 8)
   }
   return binary

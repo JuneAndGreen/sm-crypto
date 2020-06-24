@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise, no-mixed-operators */
 const DECRYPT = 0
 const ROUND = 32
 const BLOCK = 16
@@ -37,7 +38,10 @@ function rotl(x, y) {
 }
 
 function byteSub(a) {
-  return (Sbox[a >>> 24 & 0xFF] & 0xFF) << 24 | (Sbox[a >>> 16 & 0xFF] & 0xFF) << 16 | (Sbox[a >>> 8 & 0xFF] & 0xFF) << 8 | (Sbox[a & 0xFF] & 0xFF)
+  return (Sbox[a >>> 24 & 0xFF] & 0xFF) << 24 |
+    (Sbox[a >>> 16 & 0xFF] & 0xFF) << 16 |
+    (Sbox[a >>> 8 & 0xFF] & 0xFF) << 8 |
+    (Sbox[a & 0xFF] & 0xFF)
 }
 
 function l1(b) {
