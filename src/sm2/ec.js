@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations, max-len */
 const {BigInteger} = require('jsbn')
 
 /**
@@ -21,58 +22,58 @@ class ECFieldElementFp {
   }
 
   /**
-     * 判断相等
-     */
+   * 判断相等
+   */
   equals(other) {
     if (other === this) return true
     return (this.q.equals(other.q) && this.x.equals(other.x))
   }
 
   /**
-     * 返回具体数值
-     */
+   * 返回具体数值
+   */
   toBigInteger() {
     return this.x
   }
 
   /**
-     * 取反
-     */
+   * 取反
+   */
   negate() {
     return new ECFieldElementFp(this.q, this.x.negate().mod(this.q))
   }
 
   /**
-     * 相加
-     */
+   * 相加
+   */
   add(b) {
     return new ECFieldElementFp(this.q, this.x.add(b.toBigInteger()).mod(this.q))
   }
 
   /**
-     * 相减
-     */
+   * 相减
+   */
   subtract(b) {
     return new ECFieldElementFp(this.q, this.x.subtract(b.toBigInteger()).mod(this.q))
   }
 
   /**
-     * 相乘
-     */
+   * 相乘
+   */
   multiply(b) {
     return new ECFieldElementFp(this.q, this.x.multiply(b.toBigInteger()).mod(this.q))
   }
 
   /**
-     * 相除
-     */
+   * 相除
+   */
   divide(b) {
     return new ECFieldElementFp(this.q, this.x.multiply(b.toBigInteger().modInverse(this.q)).mod(this.q))
   }
 
   /**
-     * 平方
-     */
+   * 平方
+   */
   square() {
     return new ECFieldElementFp(this.q, this.x.square().mod(this.q))
   }
@@ -84,7 +85,7 @@ class ECPointFp {
     this.x = x
     this.y = y
     // 标准射影坐标系：zinv == null 或 z * zinv == 1
-    this.z = z === undefined ? BigInteger.ONE : z
+    this.z = z == null ? BigInteger.ONE : z
     this.zinv = null
     // TODO: compression flag
   }
@@ -102,8 +103,8 @@ class ECPointFp {
   }
 
   /**
-     * 判断相等
-     */
+   * 判断相等
+   */
   equals(other) {
     if (other === this) return true
     if (this.isInfinity()) return other.isInfinity()
@@ -119,40 +120,40 @@ class ECPointFp {
   }
 
   /**
-     * 是否是无穷远点
-     */
+   * 是否是无穷远点
+   */
   isInfinity() {
     if ((this.x === null) && (this.y === null)) return true
     return this.z.equals(BigInteger.ZERO) && !this.y.toBigInteger().equals(BigInteger.ZERO)
   }
 
   /**
-     * 取反，x 轴对称点
-     */
+   * 取反，x 轴对称点
+   */
   negate() {
     return new ECPointFp(this.curve, this.x, this.y.negate(), this.z)
   }
 
   /**
-     * 相加
-     *
-     * 标准射影坐标系：
-     *
-     * λ1 = x1 * z2
-     * λ2 = x2 * z1
-     * λ3 = λ1 − λ2
-     * λ4 = y1 * z2
-     * λ5 = y2 * z1
-     * λ6 = λ4 − λ5
-     * λ7 = λ1 + λ2
-     * λ8 = z1 * z2
-     * λ9 = λ3^2
-     * λ10 = λ3 * λ9
-     * λ11 = λ8 * λ6^2 − λ7 * λ9
-     * x3 = λ3 * λ11
-     * y3 = λ6 * (λ9 * λ1 − λ11) − λ4 * λ10
-     * z3 = λ10 * λ8
-     */
+   * 相加
+   *
+   * 标准射影坐标系：
+   *
+   * λ1 = x1 * z2
+   * λ2 = x2 * z1
+   * λ3 = λ1 − λ2
+   * λ4 = y1 * z2
+   * λ5 = y2 * z1
+   * λ6 = λ4 − λ5
+   * λ7 = λ1 + λ2
+   * λ8 = z1 * z2
+   * λ9 = λ3^2
+   * λ10 = λ3 * λ9
+   * λ11 = λ8 * λ6^2 − λ7 * λ9
+   * x3 = λ3 * λ11
+   * y3 = λ6 * (λ9 * λ1 − λ11) − λ4 * λ10
+   * z3 = λ10 * λ8
+   */
   add(b) {
     if (this.isInfinity()) return b
     if (b.isInfinity()) return this
@@ -193,20 +194,20 @@ class ECPointFp {
   }
 
   /**
-     * 自加
-     *
-     * 标准射影坐标系：
-     *
-     * λ1 = 3 * x1^2 + a * z1^2
-     * λ2 = 2 * y1 * z1
-     * λ3 = y1^2
-     * λ4 = λ3 * x1 * z1
-     * λ5 = λ2^2
-     * λ6 = λ1^2 − 8 * λ4
-     * x3 = λ2 * λ6
-     * y3 = λ1 * (4 * λ4 − λ6) − 2 * λ5 * λ3
-     * z3 = λ2 * λ5
-     */
+   * 自加
+   *
+   * 标准射影坐标系：
+   *
+   * λ1 = 3 * x1^2 + a * z1^2
+   * λ2 = 2 * y1 * z1
+   * λ3 = y1^2
+   * λ4 = λ3 * x1 * z1
+   * λ5 = λ2^2
+   * λ6 = λ1^2 − 8 * λ4
+   * x3 = λ2 * λ6
+   * y3 = λ1 * (4 * λ4 − λ6) − 2 * λ5 * λ3
+   * z3 = λ2 * λ5
+   */
   twice() {
     if (this.isInfinity()) return this
     if (!this.y.toBigInteger().signum()) return this.curve.infinity
@@ -232,8 +233,8 @@ class ECPointFp {
   }
 
   /**
-     * 倍点计算
-     */
+   * 倍点计算
+   */
   multiply(k) {
     if (this.isInfinity()) return this
     if (!k.signum()) return this.curve.infinity
@@ -270,23 +271,23 @@ class ECCurveFp {
   }
 
   /**
-     * 判断两个椭圆曲线是否相等
-     */
+   * 判断两个椭圆曲线是否相等
+   */
   equals(other) {
     if (other === this) return true
     return (this.q.equals(other.q) && this.a.equals(other.a) && this.b.equals(other.b))
   }
 
   /**
-     * 生成椭圆曲线域元素
-     */
+   * 生成椭圆曲线域元素
+   */
   fromBigInteger(x) {
     return new ECFieldElementFp(this.q, x)
   }
 
   /**
-     * 解析 16 进制串为椭圆曲线点
-     */
+   * 解析 16 进制串为椭圆曲线点
+   */
   decodePointHex(s) {
     switch (parseInt(s.substr(0, 2), 16)) {
       // 第一个字节

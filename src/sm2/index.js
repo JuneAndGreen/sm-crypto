@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 const {BigInteger} = require('jsbn')
 const {encodeDer, decodeDer} = require('./asn1')
 const SM3Digest = require('./sm3')

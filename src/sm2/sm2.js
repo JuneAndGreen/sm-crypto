@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise, no-mixed-operators, class-methods-use-this */
 const {BigInteger} = require('jsbn')
 const SM3Digest = require('./sm3')
 const _ = require('./utils')

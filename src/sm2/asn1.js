@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 const {BigInteger} = require('jsbn')
 
 function bigIntToMinTwosComplementsHex(bigIntegerValue) {
@@ -45,7 +46,7 @@ class ASN1Object {
   getLengthHexFromValue() {
     const n = this.hV.length / 2
     let hN = n.toString(16)
-    if (hN.length % 2 == 1) {
+    if (hN.length % 2 === 1) {
       hN = '0' + hN
     }
     if (n < 128) {
@@ -125,7 +126,7 @@ class DERSequence extends ASN1Object {
  */
 function getByteLengthOfL(s, pos) {
   if (s.substring(pos + 2, pos + 3) !== '8') return 1
-  const i = parseInt(s.substring(pos + 3, pos + 4))
+  const i = parseInt(s.substring(pos + 3, pos + 4), 10)
   if (i === 0) return -1 // length octet '80' indefinite length
   if (i > 0 && i < 10) return i + 1 // including '8?' octet;
   return -2 // malformed format
@@ -147,7 +148,7 @@ function getIntOfL(s, pos) {
   const hLength = getHexOfL(s, pos)
   if (hLength === '') return -1
   let bi
-  if (parseInt(hLength.substring(0, 1)) < 8) {
+  if (parseInt(hLength.substring(0, 1), 10) < 8) {
     bi = new BigInteger(hLength, 16)
   } else {
     bi = new BigInteger(hLength.substring(2), 16)
@@ -160,7 +161,7 @@ function getIntOfL(s, pos) {
  */
 function getStartPosOfV(s, pos) {
   const lLen = getByteLengthOfL(s, pos)
-  if (lLen < 0) return l_len
+  if (lLen < 0) return lLen
   return pos + (lLen + 1) * 2
 }
 
@@ -193,9 +194,9 @@ function getPosArrayOfChildren(h, pos) {
   const len = getIntOfL(h, pos)
   let p = p0
   let k = 0
-  while (1) {
+  for (;;) {
     const pNext = getPosOfNextSibling(h, p)
-    if (pNext === null || (pNext - p0 >= (len * 2))) break
+    if (pNext == null || (pNext - p0 >= (len * 2))) break
     if (k >= 200) break
 
     a.push(pNext)

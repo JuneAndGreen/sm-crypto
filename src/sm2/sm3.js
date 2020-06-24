@@ -1,8 +1,11 @@
+/* eslint-disable no-bitwise, no-mixed-operators, class-methods-use-this, camelcase */
 const {BigInteger} = require('jsbn')
 const _ = require('./utils')
 
 const copyArray = function (sourceArray, sourceIndex, destinationArray, destinationIndex, length) {
-  for (let i = 0; i < length; i++) destinationArray[destinationIndex + i] = sourceArray[sourceIndex + i]
+  for (let i = 0; i < length; i++) {
+    destinationArray[destinationIndex + i] = sourceArray[sourceIndex + i]
+  }
 }
 
 const Int32 = {
@@ -10,13 +13,13 @@ const Int32 = {
   maxValue: 0b1111111111111111111111111111111,
   parse(n) {
     if (n < this.minValue) {
-      const bigInteger = new Number(-n)
+      const bigInteger = Number(-n)
       const bigIntegerRadix = bigInteger.toString(2)
       const subBigIntegerRadix = bigIntegerRadix.substr(bigIntegerRadix.length - 31, 31)
       let reBigIntegerRadix = ''
       for (let i = 0; i < subBigIntegerRadix.length; i++) {
         const subBigIntegerRadixItem = subBigIntegerRadix.substr(i, 1)
-        reBigIntegerRadix += subBigIntegerRadixItem == '0' ? '1' : '0'
+        reBigIntegerRadix += subBigIntegerRadixItem === '0' ? '1' : '0'
       }
       const result = parseInt(reBigIntegerRadix, 2)
       return (result + 1)
@@ -27,7 +30,7 @@ const Int32 = {
       let reBigIntegerRadix = ''
       for (let i = 0; i < subBigIntegerRadix.length; i++) {
         const subBigIntegerRadixItem = subBigIntegerRadix.substr(i, 1)
-        reBigIntegerRadix += subBigIntegerRadixItem == '0' ? '1' : '0'
+        reBigIntegerRadix += subBigIntegerRadixItem === '0' ? '1' : '0'
       }
       const result = parseInt(reBigIntegerRadix, 2)
       return -(result + 1)
@@ -37,16 +40,16 @@ const Int32 = {
   },
   parseByte(n) {
     if (n < 0) {
-      const bigInteger = new Number(-n)
+      const bigInteger = Number(-n)
       const bigIntegerRadix = bigInteger.toString(2)
       const subBigIntegerRadix = bigIntegerRadix.substr(bigIntegerRadix.length - 8, 8)
       let reBigIntegerRadix = ''
       for (let i = 0; i < subBigIntegerRadix.length; i++) {
         const subBigIntegerRadixItem = subBigIntegerRadix.substr(i, 1)
-        reBigIntegerRadix += subBigIntegerRadixItem == '0' ? '1' : '0'
+        reBigIntegerRadix += subBigIntegerRadixItem === '0' ? '1' : '0'
       }
       const result = parseInt(reBigIntegerRadix, 2)
-      return (result + 1)
+      return (result + 1) % 256
     } else if (n > 255) {
       const bigInteger = Number(n)
       const bigIntegerRadix = bigInteger.toString(2)
@@ -58,13 +61,15 @@ const Int32 = {
 }
 
 class SM3Digest {
-  constructor() {
-    this.xBuf = new Array()
+  constructor(...args) {
+    this.xBuf = []
     this.xBufOff = 0
     this.byteCount = 0
     this.DIGEST_LENGTH = 32
-    this.v0 = [0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600, 0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e]
-    this.v0 = [0x7380166f, 0x4914b2b9, 0x172442d7, -628488704, -1452330820, 0x163138aa, -477237683, -1325724082]
+    this.v0 = [0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+      0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e]
+    this.v0 = [0x7380166f, 0x4914b2b9, 0x172442d7, -628488704,
+      -1452330820, 0x163138aa, -477237683, -1325724082]
     this.v = new Array(8)
     this.v_ = new Array(8)
     this.X0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -72,8 +77,8 @@ class SM3Digest {
     this.xOff = 0
     this.T_00_15 = 0x79cc4519
     this.T_16_63 = 0x7a879d8a
-    if (arguments.length > 0) {
-      this.initDigest(arguments[0])
+    if (args.length > 0) {
+      this.initDigest(args[0])
     } else {
       this.init()
     }
@@ -100,7 +105,10 @@ class SM3Digest {
   reset() {
     this.byteCount = 0
     this.xBufOff = 0
-    for (const elem in this.xBuf) this.xBuf[elem] = null
+
+    const keys = Object.keys(this.xBuf)
+    for (let i = 0, len = keys.length; i < len; i++) this.xBuf[keys[i]] = null
+
     copyArray(this.v0, 0, this.v, 0, this.v0.length)
     this.xOff = 0
     copyArray(this.X0, 0, this.X, 0, this.X0.length)
@@ -119,8 +127,11 @@ class SM3Digest {
     const vv = this.v
     const vv_ = this.v_
     copyArray(vv, 0, vv_, 0, this.v0.length)
-    let SS1; let SS2; let TT1; let TT2; let
-      aaa
+    let SS1
+    let SS2
+    let TT1
+    let TT2
+    let aaa
     for (i = 0; i < 16; i++) {
       aaa = this.rotate(vv_[0], 12)
       SS1 = Int32.parse(Int32.parse(aaa + vv_[4]) + this.rotate(this.T_00_15, i))
@@ -166,7 +177,7 @@ class SM3Digest {
     n |= (in_Renamed[++inOff] & 0xff) << 8
     n |= (in_Renamed[++inOff] & 0xff)
     this.X[this.xOff] = n
-    if (++this.xOff == 16) {
+    if (++this.xOff === 16) {
       this.processBlock()
     }
   }
@@ -197,7 +208,7 @@ class SM3Digest {
 
   update(input) {
     this.xBuf[this.xBufOff++] = input
-    if (this.xBufOff == this.xBuf.length) {
+    if (this.xBufOff === this.xBuf.length) {
       this.processWord(this.xBuf, 0)
       this.xBufOff = 0
     }
@@ -205,7 +216,7 @@ class SM3Digest {
   }
 
   blockUpdate(input, inOff, length) {
-    while ((this.xBufOff != 0) && (length > 0)) {
+    while ((this.xBufOff !== 0) && (length > 0)) {
       this.update(input[inOff])
       inOff++
       length--
@@ -226,7 +237,7 @@ class SM3Digest {
   finish() {
     const bitLength = (this.byteCount << 3)
     this.update((128))
-    while (this.xBufOff != 0) this.update((0))
+    while (this.xBufOff !== 0) this.update((0))
     this.processLength(bitLength)
     this.processBlock()
   }
@@ -263,11 +274,7 @@ class SM3Digest {
     if (number > Int32.maxValue || number < Int32.minValue) {
       number = Int32.parse(number)
     }
-    if (number >= 0) {
-      return number >> bits
-    } else {
-      return (number >> bits) + (2 << ~bits)
-    }
+    return number >>> bits
   }
 
   urShiftLong(number, bits) {
