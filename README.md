@@ -75,6 +75,17 @@ let verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey, {
     hash: true,
     publicKey,
 });
+
+// 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加userId(长度小于8192)
+let sigValueHex6 = sm2.doSignature(msgString, privateKey, {
+    hash: true,
+    publicKey,
+    userId: 'testUserId',
+});
+let verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
+    hash: true,
+    userId: 'testUserId',
+});
 ```
 
 ### 获取椭圆曲线点
