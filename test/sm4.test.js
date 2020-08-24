@@ -1,4 +1,5 @@
 const sm4 = require('../src/index').sm4
+const _ = require('../src/sm2/utils')
 const key = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10]
 
 test('sm4: encrypt a group', () => {
@@ -25,3 +26,21 @@ test('sm4: encrypt a group whit 1000000 times', () => {
 
     expect(temp).toEqual([0x59, 0x52, 0x98, 0xc7, 0xc6, 0xfd, 0x27, 0x1f, 0x04, 0x02, 0xf8, 0x04, 0xc3, 0x3d, 0x3f, 0x66])
 })
+
+test('sm4: encrypt & decrypt string', () => {
+    const key = Buffer.from('juneandgreen', 'utf8')
+    const msg = 'hello world!'
+    const len = msg.length
+
+    let input = Buffer.alloc(16, 0)
+    input = input.fill(msg, 0, len, 'utf8')
+
+    // encrypt
+    let result = Buffer.from(sm4.encrypt(input, key)).toString('hex')
+    expect(result).toBe('c81f5159bbeb176b78b4be03e8e4b601')
+    
+    // decrypt
+    result = Buffer.from(sm4.decrypt(Buffer.from(result, 'hex'), key)).slice(0, len).toString('utf8')
+    expect(result).toBe(msg)
+})
+
