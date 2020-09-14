@@ -16,8 +16,8 @@ class SM2Cipher {
   reset() {
     this.sm3keybase = new SM3Digest()
     this.sm3c3 = new SM3Digest()
-    const xWords = _.hexToArray(this.p2.getX().toBigInteger().toRadix(16))
-    const yWords = _.hexToArray(this.p2.getY().toBigInteger().toRadix(16))
+    const xWords = _.hexToArray(_.leftPad(this.p2.getX().toBigInteger().toRadix(16), 64))
+    const yWords = _.hexToArray(_.leftPad(this.p2.getY().toBigInteger().toRadix(16), 64))
     this.sm3keybase.blockUpdate(xWords, 0, xWords.length)
     this.sm3c3.blockUpdate(xWords, 0, xWords.length)
     this.sm3keybase.blockUpdate(yWords, 0, yWords.length)
@@ -77,7 +77,7 @@ class SM2Cipher {
   }
 
   doFinal(c3) {
-    const yWords = _.hexToArray(this.p2.getY().toBigInteger().toRadix(16))
+    const yWords = _.hexToArray(_.leftPad(this.p2.getY().toBigInteger().toRadix(16), 64))
     this.sm3c3.blockUpdate(yWords, 0, yWords.length)
     this.sm3c3.doFinal(c3, 0)
     this.reset()
