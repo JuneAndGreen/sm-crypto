@@ -49,6 +49,11 @@ test('sm4: decrypt several groups', () => {
     expect(sm4.decrypt([...output_2, ...output_2], key, {padding: 'none', output: 'array'})).toEqual([...input, ...input])
 })
 
+test('sm4: encrypt unicode string', () => {
+    expect(sm4.encrypt('🇨🇳𠮷😀😃😄😁😆😅', keyHexStr)).toBe('a0b1aac2e6db928ddfc8a081a6661d0452b44e5720db106714ffc8cbee29bcf7d96b4d64bffd07553e6a2ee096523b7f')
+    expect(sm4.decrypt('a0b1aac2e6db928ddfc8a081a6661d0452b44e5720db106714ffc8cbee29bcf7d96b4d64bffd07553e6a2ee096523b7f', keyHexStr)).toBe('🇨🇳𠮷😀😃😄😁😆😅')
+})
+
 test('sm4: encrypt a group whit 1000000 times', () => {
     let temp = input
     for (let i = 0; i < 1000000; i++) {
