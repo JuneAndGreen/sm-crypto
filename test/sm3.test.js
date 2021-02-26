@@ -19,7 +19,7 @@ test('sm3: must match the result', () => {
     expect(sm3('今天天气真是不错')).toBe('fff6e05118c782f5a2cea8bc2efec8819d0dc6d7d09cb9aa5c4ef14e673fa043')
     expect(sm3('今天天气真是糟透了')).toBe('f2e417f09f99ee7a08fa6c8fd75f87b7969b20a60e80b04154a5aae7220c87d8')
 
-    // 四字节中文
+    // 四字节
     expect(sm3('🇨🇳𠮷😀😃😄😁😆😅')).toBe('b6d217a24511ddb7593f13b74519038618cbb5b947fee20da3f0cd5503152c23')
 
     // 碰撞 case
