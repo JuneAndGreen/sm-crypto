@@ -83,6 +83,7 @@ module.exports = {
       'never'
     ],
     'max-len': 'off',
+    'no-bitwise': 'off',
   },
   'globals': {
     'window': true,

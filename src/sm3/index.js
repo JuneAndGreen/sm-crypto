@@ -36,10 +36,25 @@ function hex2binary(hex) {
  */
 function str2binary(str) {
   let binary = ''
+
   for (let i = 0, len = str.length; i < len; i++) {
-    const ch = str[i]
-    binary += leftPad(ch.codePointAt(0).toString(2), 8)
+    const point = str.charCodeAt(i)
+
+    if (point <= 0x007f) {
+      // 单字节，标量值：00000000 00000000 0zzzzzzz
+      binary += leftPad(point.toString(2), 8)
+    } else if (point <= 0x07ff) {
+      // 双字节，标量值：00000000 00000yyy yyzzzzzz
+      binary += leftPad((0xc0 | (point >>> 6)).toString(2), 8) // 110yyyyy（0xc0-0xdf）
+      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+    } else {
+      // 三字节：标量值：00000000 xxxxyyyy yyzzzzzz
+      binary += leftPad((0xe0 | (point >>> 12)).toString(2), 8) // 1110xxxx（0xe0-0xef）
+      binary += leftPad((0x80 | ((point >>> 6) & 0x3f)).toString(2), 8) // 10yyyyyy（0x80-0xbf）
+      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+    }
   }
+
   return binary
 }
 
@@ -94,8 +109,8 @@ function add(x, y) {
   const result = binaryCal(x, y, (a, b, prevResult) => {
     const carry = prevResult ? prevResult[1] : '0' || '0'
 
-    // a,b不等时,carry不变，结果与carry相反
-    // a,b相等时，结果等于原carry，新carry等于a
+    // a, b 不等时,carry 不变，结果与 carry 相反
+    // a, b 相等时，结果等于原 carry，新 carry 等于 a
     if (a !== b) return [carry === '0' ? '1' : '0', carry]
 
     return [carry, a]
@@ -215,7 +230,7 @@ module.exports = function (str) {
   // 填充
   const len = binary.length
 
-  // k是满足len + 1 + k = 448mod512的最小的非负整数
+  // k 是满足 len + 1 + k = 448mod512 的最小的非负整数
   let k = len % 512
 
   // 如果 448 <= (512 % len) < 512，需要多补充 (len % 448) 比特'0'以满足总比特长度为512的倍数

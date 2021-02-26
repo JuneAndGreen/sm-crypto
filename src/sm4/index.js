@@ -65,7 +65,7 @@ function utf8ToArray(str) {
     const point = str.charCodeAt(i)
 
     if (point <= 0x007f) {
-      // 单子节，标量值：00000000 00000000 0zzzzzzz
+      // 单字节，标量值：00000000 00000000 0zzzzzzz
       arr.push(point)
     } else if (point <= 0x07ff) {
       // 双字节，标量值：00000000 00000yyy yyzzzzzz
