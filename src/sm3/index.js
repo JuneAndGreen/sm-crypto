@@ -1,5 +1,5 @@
 /**
- * 左补0到指定长度
+ * 左补 0 到指定长度
  */
 function leftPad(input, num) {
   if (input.length >= num) return input
@@ -38,7 +38,7 @@ function str2binary(str) {
   let binary = ''
 
   for (let i = 0, len = str.length; i < len; i++) {
-    const point = str.charCodeAt(i)
+    const point = str.codePointAt(i)
 
     if (point <= 0x007f) {
       // 单字节，标量值：00000000 00000000 0zzzzzzz
@@ -47,11 +47,22 @@ function str2binary(str) {
       // 双字节，标量值：00000000 00000yyy yyzzzzzz
       binary += leftPad((0xc0 | (point >>> 6)).toString(2), 8) // 110yyyyy（0xc0-0xdf）
       binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
-    } else {
+    } else if (point <= 0xD7FF || (point >= 0xE000 && point <= 0xFFFF)) {
       // 三字节：标量值：00000000 xxxxyyyy yyzzzzzz
       binary += leftPad((0xe0 | (point >>> 12)).toString(2), 8) // 1110xxxx（0xe0-0xef）
       binary += leftPad((0x80 | ((point >>> 6) & 0x3f)).toString(2), 8) // 10yyyyyy（0x80-0xbf）
       binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+    } else if (point >= 0x010000 && point <= 0x10FFFF) {
+      // 四字节：标量值：000wwwxx xxxxyyyy yyzzzzzz
+      i++
+      binary += leftPad((0xf0 | ((point >>> 18) & 0x1c)).toString(2), 8) // 11110www（0xf0-0xf7）
+      binary += leftPad((0x80 | ((point >>> 12) & 0x3f)).toString(2), 8) // 10xxxxxx（0x80-0xbf）
+      binary += leftPad((0x80 | ((point >>> 6) & 0x3f)).toString(2), 8) // 10yyyyyy（0x80-0xbf）
+      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+    } else {
+      // 五、六字节，暂时不支持
+      binary += leftPad(point.toString(2), 8)
+      throw new Error('input is not supported')
     }
   }
 
