@@ -73,7 +73,7 @@ function str2binary(str) {
  * 数组转为二进制
  */
 function array2binary(arr) {
-  return arr.reduce((temp, item) => temp += leftPad(item.toString(2), 8), '')
+  return arr.reduce((temp, item) => temp + leftPad(item.toString(2), 8), '')
 }
 
 /**
