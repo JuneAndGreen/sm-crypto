@@ -70,6 +70,13 @@ function str2binary(str) {
 }
 
 /**
+ * 数组转为二进制
+ */
+function array2binary(arr) {
+  return arr.reduce((temp, item) => temp += leftPad(item.toString(2), 8), '')
+}
+
+/**
  * 循环左移
  */
 function rol(str, n) {
@@ -236,7 +243,7 @@ function CF(V, Bi) {
 }
 
 module.exports = function (str) {
-  const binary = str2binary(str)
+  const binary = typeof str === 'string' ? str2binary(str) : array2binary(str)
 
   // 填充
   const len = binary.length
