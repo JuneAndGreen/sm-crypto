@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const sm3 = require('../src/index').sm3
 
 test('sm3: must match the result', () => {
@@ -31,4 +33,9 @@ test('sm3: must match the result', () => {
     expect(sm3('丧丙上䠉䰋不亐乑')).toBe('382f78a3065187c40152d2f5ca283f8f4bf148909c763cfbdfa7efb943016552')
     expect(sm3('鱏8fpT肙腳荧HNQ')).toBe('b67a77a89564b7be13fccf456e0ec39ad564eb46f4c54c6946b1d548efc4078d')
     expect(sm3('丧丙上䠉䰋不亐乑')).not.toBe(sm3('鱏8fpT肙腳荧HNQ'))
+})
+
+test('sm3: long text', () => {
+    const input = fs.readFileSync(path.join(__dirname, './test.jpg'))
+    expect(sm3(input)).toBe('585084878e61b6b1bed61207142ea0313fa3c0c8211e44871bdaa637632ccff0')
 })

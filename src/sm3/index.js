@@ -1,139 +1,108 @@
 /**
- * 左补 0 到指定长度
+ * 字节数组转 16 进制串
  */
-function leftPad(input, num) {
-  if (input.length >= num) return input
-
-  return (new Array(num - input.length + 1)).join('0') + input
+function ArrayToHex(arr) {
+  return arr.map(item => {
+    item = item.toString(16)
+    return item.length === 1 ? '0' + item : item
+  }).join('')
 }
 
 /**
- * 二进制转化为十六进制
+ * utf8 串转字节数组
  */
-function binary2hex(binary) {
-  const binaryLength = 8
-  let hex = ''
-  for (let i = 0; i < binary.length / binaryLength; i++) {
-    hex += leftPad(parseInt(binary.substr(i * binaryLength, binaryLength), 2).toString(16), 2)
-  }
-  return hex
-}
-
-/**
- * 十六进制转化为二进制
- */
-function hex2binary(hex) {
-  const hexLength = 2
-  let binary = ''
-  for (let i = 0; i < hex.length / hexLength; i++) {
-    binary += leftPad(parseInt(hex.substr(i * hexLength, hexLength), 16).toString(2), 8)
-  }
-  return binary
-}
-
-/**
- * 普通字符串转化为二进制
- */
-function str2binary(str) {
-  let binary = ''
+function utf8ToArray(str) {
+  const arr = []
 
   for (let i = 0, len = str.length; i < len; i++) {
     const point = str.codePointAt(i)
 
     if (point <= 0x007f) {
       // 单字节，标量值：00000000 00000000 0zzzzzzz
-      binary += leftPad(point.toString(2), 8)
+      arr.push(point)
     } else if (point <= 0x07ff) {
       // 双字节，标量值：00000000 00000yyy yyzzzzzz
-      binary += leftPad((0xc0 | (point >>> 6)).toString(2), 8) // 110yyyyy（0xc0-0xdf）
-      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+      arr.push(0xc0 | (point >>> 6)) // 110yyyyy（0xc0-0xdf）
+      arr.push(0x80 | (point & 0x3f)) // 10zzzzzz（0x80-0xbf）
     } else if (point <= 0xD7FF || (point >= 0xE000 && point <= 0xFFFF)) {
       // 三字节：标量值：00000000 xxxxyyyy yyzzzzzz
-      binary += leftPad((0xe0 | (point >>> 12)).toString(2), 8) // 1110xxxx（0xe0-0xef）
-      binary += leftPad((0x80 | ((point >>> 6) & 0x3f)).toString(2), 8) // 10yyyyyy（0x80-0xbf）
-      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+      arr.push(0xe0 | (point >>> 12)) // 1110xxxx（0xe0-0xef）
+      arr.push(0x80 | ((point >>> 6) & 0x3f)) // 10yyyyyy（0x80-0xbf）
+      arr.push(0x80 | (point & 0x3f)) // 10zzzzzz（0x80-0xbf）
     } else if (point >= 0x010000 && point <= 0x10FFFF) {
       // 四字节：标量值：000wwwxx xxxxyyyy yyzzzzzz
       i++
-      binary += leftPad((0xf0 | ((point >>> 18) & 0x1c)).toString(2), 8) // 11110www（0xf0-0xf7）
-      binary += leftPad((0x80 | ((point >>> 12) & 0x3f)).toString(2), 8) // 10xxxxxx（0x80-0xbf）
-      binary += leftPad((0x80 | ((point >>> 6) & 0x3f)).toString(2), 8) // 10yyyyyy（0x80-0xbf）
-      binary += leftPad((0x80 | (point & 0x3f)).toString(2), 8) // 10zzzzzz（0x80-0xbf）
+      arr.push((0xf0 | (point >>> 18) & 0x1c)) // 11110www（0xf0-0xf7）
+      arr.push((0x80 | ((point >>> 12) & 0x3f))) // 10xxxxxx（0x80-0xbf）
+      arr.push((0x80 | ((point >>> 6) & 0x3f))) // 10yyyyyy（0x80-0xbf）
+      arr.push((0x80 | (point & 0x3f))) // 10zzzzzz（0x80-0xbf）
     } else {
       // 五、六字节，暂时不支持
-      binary += leftPad(point.toString(2), 8)
+      arr.push(point)
       throw new Error('input is not supported')
     }
   }
 
-  return binary
-}
-
-/**
- * 数组转为二进制
- */
-function array2binary(arr) {
-  return arr.reduce((temp, item) => temp + leftPad(item.toString(2), 8), '')
+  return arr
 }
 
 /**
  * 循环左移
  */
-function rol(str, n) {
-  return str.substring(n % str.length) + str.substr(0, n % str.length)
-}
-
-/**
- * 二进制运算
- */
-function binaryCal(x, y, method) {
-  const a = x || ''
-  const b = y || ''
+function rotl(x, n) {
   const result = []
-  let prevResult
-
-  for (let i = a.length - 1; i >= 0; i--) { // 大端
-    prevResult = method(a[i], b[i], prevResult)
-    result[i] = prevResult[0]
+  const a = ~~(n / 8) // 偏移 a 字节
+  const b = n % 8 // 偏移 b 位
+  for (let i = 0, len = x.length; i < len; i++) {
+    // current << b + (current + 1) >>> (8 - b)
+    result[i] = ((x[(i + a) % len] << b )& 0xff) + ((x[(i + a + 1) % len] >>> (8 - b)) & 0xff)
   }
-  return result.join('')
+  return result
 }
 
 /**
  * 二进制异或运算
  */
 function xor(x, y) {
-  return binaryCal(x, y, (a, b) => [(a === b ? '0' : '1')])
+  const result = []
+  for (let i = x.length - 1; i >= 0; i--) result[i] = (x[i] ^ y[i]) & 0xff
+  return result
 }
 
 /**
  * 二进制与运算
  */
 function and(x, y) {
-  return binaryCal(x, y, (a, b) => [(a === '1' && b === '1' ? '1' : '0')])
+  const result = []
+  for (let i = x.length - 1; i >= 0; i--) result[i] = (x[i] & y[i]) & 0xff
+  return result
 }
 
 /**
  * 二进制或运算
  */
 function or(x, y) {
-  return binaryCal(x, y, (a, b) => [(a === '1' || b === '1' ? '1' : '0')]) // a === '0' && b === '0' ? '0' : '1'
+  const result = []
+  for (let i = x.length - 1; i >= 0; i--) result[i] = (x[i] | y[i]) & 0xff
+  return result
 }
 
 /**
  * 二进制与运算
  */
 function add(x, y) {
-  const result = binaryCal(x, y, (a, b, prevResult) => {
-    const carry = prevResult ? prevResult[1] : '0' || '0'
-
-    // a, b 不等时,carry 不变，结果与 carry 相反
-    // a, b 相等时，结果等于原 carry，新 carry 等于 a
-    if (a !== b) return [carry === '0' ? '1' : '0', carry]
-
-    return [carry, a]
-  })
-
+  const result = []
+  let temp = 0
+  for (let i = x.length - 1; i >= 0; i--) {
+    const sum = x[i] + y[i] + temp
+    if (sum > 0xff) {
+      temp = 1
+      result[i] = sum & 0xff
+    } else {
+      temp = 0
+      result[i] = sum & 0xff
+    }
+  }
   return result
 }
 
@@ -141,37 +110,37 @@ function add(x, y) {
  * 二进制非运算
  */
 function not(x) {
-  return binaryCal(x, undefined, a => [a === '1' ? '0' : '1'])
-}
-
-function calMulti(method) {
-  return (...arr) => arr.reduce((prev, curr) => method(prev, curr))
+  const result = []
+  for (let i = x.length - 1; i >= 0; i--) result[i] = (~x[i]) & 0xff
+  return result
 }
 
 /**
  * 压缩函数中的置换函数 P1(X) = X xor (X <<< 9) xor (X <<< 17)
  */
 function P0(X) {
-  return calMulti(xor)(X, rol(X, 9), rol(X, 17))
+  return xor(xor(X, rotl(X, 9)), rotl(X, 17))
 }
 
 /**
  * 消息扩展中的置换函数 P1(X) = X xor (X <<< 15) xor (X <<< 23)
  */
 function P1(X) {
-  return calMulti(xor)(X, rol(X, 15), rol(X, 23))
+  return xor(xor(X, rotl(X, 15)), rotl(X, 23))
 }
 
+/**
+ * 布尔函数 FF
+ */
 function FF(X, Y, Z, j) {
-  return j >= 0 && j <= 15 ? calMulti(xor)(X, Y, Z) : calMulti(or)(and(X, Y), and(X, Z), and(Y, Z))
+  return j >= 0 && j <= 15 ? xor(xor(X, Y), Z) : or(or(and(X, Y), and(X, Z)), and(Y, Z))
 }
 
+/**
+ * 布尔函数 GG
+ */
 function GG(X, Y, Z, j) {
-  return j >= 0 && j <= 15 ? calMulti(xor)(X, Y, Z) : or(and(X, Y), and(not(X), Z))
-}
-
-function T(j) {
-  return j >= 0 && j <= 15 ? hex2binary('79cc4519') : hex2binary('7a879d8a')
+  return j >= 0 && j <= 15 ? xor(xor(X, Y), Z) : or(and(X, Y), and(not(X), Z))
 }
 
 /**
@@ -179,90 +148,115 @@ function T(j) {
  */
 function CF(V, Bi) {
   // 消息扩展
-  const wordLength = 32
   const W = []
   const M = [] // W'
 
-  // 将消息分组B划分为16个字W0， W1，…… ，W15 （字为长度为32的比特串）
+  // 将消息分组B划分为 16 个字 W0， W1，……，W15
   for (let i = 0; i < 16; i++) {
-    W.push(Bi.substr(i * wordLength, wordLength))
+    const start = i * 4
+    W.push(Bi.slice(start, start + 4))
   }
 
-  // W[j] <- P1(W[j−16] xor W[j−9] xor (W[j−3] <<< 15)) xor (W[j−13] <<< 7) xor W[j−6]
+  // W16 ～ W67：W[j] <- P1(W[j−16] xor W[j−9] xor (W[j−3] <<< 15)) xor (W[j−13] <<< 7) xor W[j−6]
   for (let j = 16; j < 68; j++) {
-    W.push(calMulti(xor)(
-      P1(calMulti(xor)(W[j - 16], W[j - 9], rol(W[j - 3], 15))),
-      rol(W[j - 13], 7),
+    W.push(xor(
+      xor(
+        P1(
+          xor(
+            xor(W[j - 16], W[j - 9]),
+            rotl(W[j - 3], 15)
+          )
+        ),
+        rotl(W[j - 13], 7)
+      ),
       W[j - 6]
     ))
   }
 
-  // W′[j] = W[j] xor W[j+4]
+  // W′0 ～ W′63：W′[j] = W[j] xor W[j+4]
   for (let j = 0; j < 64; j++) {
     M.push(xor(W[j], W[j + 4]))
   }
 
   // 压缩
-  const wordRegister = [] // 字寄存器
-  for (let j = 0; j < 8; j++) {
-    wordRegister.push(V.substr(j * wordLength, wordLength))
-  }
-
-  let A = wordRegister[0]
-  let B = wordRegister[1]
-  let C = wordRegister[2]
-  let D = wordRegister[3]
-  let E = wordRegister[4]
-  let F = wordRegister[5]
-  let G = wordRegister[6]
-  let H = wordRegister[7]
-
+  const T1 = [0x79, 0xcc, 0x45, 0x19]
+  const T2 = [0x7a, 0x87, 0x9d, 0x8a]
+  // 字寄存器
+  let A = V.slice(0, 4)
+  let B = V.slice(4, 8)
+  let C = V.slice(8, 12)
+  let D = V.slice(12, 16)
+  let E = V.slice(16, 20)
+  let F = V.slice(20, 24)
+  let G = V.slice(24, 28)
+  let H = V.slice(28, 32)
   // 中间变量
   let SS1
   let SS2
   let TT1
   let TT2
   for (let j = 0; j < 64; j++) {
-    SS1 = rol(calMulti(add)(rol(A, 12), E, rol(T(j), j)), 7)
-    SS2 = xor(SS1, rol(A, 12))
+    const T = j >= 0 && j <= 15 ? T1 : T2
+    SS1 = rotl(add(
+      add(rotl(A, 12), E),
+      rotl(T, j)
+    ), 7)
+    SS2 = xor(SS1, rotl(A, 12))
 
-    TT1 = calMulti(add)(FF(A, B, C, j), D, SS2, M[j])
-    TT2 = calMulti(add)(GG(E, F, G, j), H, SS1, W[j])
+    TT1 = add(add(add(FF(A, B, C, j), D), SS2), M[j])
+    TT2 = add(add(add(GG(E, F, G, j), H), SS1), W[j])
 
     D = C
-    C = rol(B, 9)
+    C = rotl(B, 9)
     B = A
     A = TT1
     H = G
-    G = rol(F, 19)
+    G = rotl(F, 19)
     F = E
     E = P0(TT2)
   }
 
-  return xor([A, B, C, D, E, F, G, H].join(''), V)
+  return xor([].concat(A, B, C, D, E, F, G, H), V)
 }
 
-module.exports = function (str) {
-  const binary = typeof str === 'string' ? str2binary(str) : array2binary(str)
+module.exports = function (input) {
+  const array = typeof input === 'string' ? utf8ToArray(input) : Array.prototype.slice.call(input)
 
   // 填充
-  const len = binary.length
+  let len = array.length * 8
 
   // k 是满足 len + 1 + k = 448mod512 的最小的非负整数
   let k = len % 512
-
   // 如果 448 <= (512 % len) < 512，需要多补充 (len % 448) 比特'0'以满足总比特长度为512的倍数
   k = k >= 448 ? 512 - (k % 448) - 1 : 448 - k - 1
 
-  const m = `${binary}1${leftPad('', k)}${leftPad(len.toString(2), 64)}`.toString() // k个0
-
+  // 填充
+  const kArr = new Array((k - 7) / 8)
+  for (let i = 0, len = kArr.length; i < len; i++) kArr[i] = 0
+  const lenArr = []
+  len = len.toString(2)
+  for (let i = 7; i >= 0; i--) {
+    if (len.length > 8) {
+      const start = len.length - 8
+      lenArr[i] = parseInt(len.substr(start), 2)
+      len = len.substr(0, start)
+    } else if (len.length > 0) {
+      lenArr[i] = parseInt(len, 2)
+      len = ''
+    } else {
+      lenArr[i] = 0
+    }
+  }
+  const m = [].concat(array, [0x80], kArr, lenArr)
+  
   // 迭代压缩
-  const n = (len + k + 65) / 512
-
-  let V = hex2binary('7380166f4914b2b9172442d7da8a0600a96f30bc163138aae38dee4db0fb0e4e')
-  for (let i = 0; i <= n - 1; i++) {
-    const B = m.substr(512 * i, 512)
+  const n = m.length / 64
+  let V = [0x73, 0x80, 0x16, 0x6f, 0x49, 0x14, 0xb2, 0xb9, 0x17, 0x24, 0x42, 0xd7, 0xda, 0x8a, 0x06, 0x00, 0xa9, 0x6f, 0x30, 0xbc, 0x16, 0x31, 0x38, 0xaa, 0xe3, 0x8d, 0xee, 0x4d, 0xb0, 0xfb, 0x0e, 0x4e]
+  for (let i = 0; i < n; i++) {
+    const start = 64 * i
+    const B = m.slice(start, start + 64)
     V = CF(V, B)
   }
-  return binary2hex(V)
+  return ArrayToHex(V)
 }
+  
