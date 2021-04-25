@@ -55,7 +55,7 @@ function rotl(x, n) {
   const b = n % 8 // 偏移 b 位
   for (let i = 0, len = x.length; i < len; i++) {
     // current << b + (current + 1) >>> (8 - b)
-    result[i] = ((x[(i + a) % len] << b )& 0xff) + ((x[(i + a + 1) % len] >>> (8 - b)) & 0xff)
+    result[i] = ((x[(i + a) % len] << b) & 0xff) + ((x[(i + a + 1) % len] >>> (8 - b)) & 0xff)
   }
   return result
 }
@@ -248,7 +248,7 @@ module.exports = function (input) {
     }
   }
   const m = [].concat(array, [0x80], kArr, lenArr)
-  
+
   // 迭代压缩
   const n = m.length / 64
   let V = [0x73, 0x80, 0x16, 0x6f, 0x49, 0x14, 0xb2, 0xb9, 0x17, 0x24, 0x42, 0xd7, 0xda, 0x8a, 0x06, 0x00, 0xa9, 0x6f, 0x30, 0xbc, 0x16, 0x31, 0x38, 0xaa, 0xe3, 0x8d, 0xee, 0x4d, 0xb0, 0xfb, 0x0e, 0x4e]
@@ -259,4 +259,3 @@ module.exports = function (input) {
   }
   return ArrayToHex(V)
 }
-  
