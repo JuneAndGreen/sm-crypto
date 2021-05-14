@@ -41,8 +41,8 @@ class ASN1Object {
   }
 
   /**
-     * get hexadecimal ASN.1 TLV length(L) bytes from TLV value(V)
-     */
+   * get hexadecimal ASN.1 TLV length(L) bytes from TLV value(V)
+   */
   getLengthHexFromValue() {
     const n = this.hV.length / 2
     let hN = n.toString(16)
@@ -59,8 +59,8 @@ class ASN1Object {
   }
 
   /**
-     * get hexadecimal string of ASN.1 TLV bytes
-     */
+   * get hexadecimal string of ASN.1 TLV bytes
+   */
   getEncodedHex() {
     if (this.hTLV == null || this.isModified) {
       this.hV = this.getFreshValueHex()
@@ -210,8 +210,8 @@ function getPosArrayOfChildren(h, pos) {
 
 module.exports = {
   /**
-     * ASN.1 DER编码
-     */
+   * ASN.1 DER编码
+   */
   encodeDer(r, s) {
     const derR = new DERInteger({bigint: r})
     const derS = new DERInteger({bigint: s})
@@ -221,8 +221,8 @@ module.exports = {
   },
 
   /**
-     * 解析 ASN.1 DER
-     */
+   * 解析 ASN.1 DER
+   */
   decodeDer(input) {
     // 1. Items of ASN.1 Sequence Check
     const a = getPosArrayOfChildren(input, 0)

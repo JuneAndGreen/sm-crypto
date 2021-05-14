@@ -1,9 +1,8 @@
 /* eslint-disable no-use-before-define */
 const {BigInteger} = require('jsbn')
 const {encodeDer, decodeDer} = require('./asn1')
-const SM3Digest = require('./sm3')
-const SM2Cipher = require('./sm2')
 const _ = require('./utils')
+const sm3 = require('./sm3')
 
 const {G, curve, n} = _.generateEcparam()
 const C1C2C3 = 0
@@ -12,24 +11,45 @@ const C1C2C3 = 0
  * 加密
  */
 function doEncrypt(msg, publicKey, cipherMode = 1) {
-  const cipher = new SM2Cipher()
-  msg = _.hexToArray(_.parseUtf8StringToHex(msg))
+  msg = _.hexToArray(_.utf8ToHex(msg))
+  publicKey =  _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
 
-  if (publicKey.length > 128) {
-    publicKey = publicKey.substr(publicKey.length - 128)
+  const keypair = _.generateKeyPairHex()
+  const k = new BigInteger(keypair.privateKey, 16) // 随机数 k
+
+  // c1 = k * G
+  let c1 = keypair.publicKey
+  if (c1.length > 128) c1 = c1.substr(c1.length - 128)
+
+  // (x2, y2) = k * publicKey
+  const p = publicKey.multiply(k)
+  const x2 = _.hexToArray(_.leftPad(p.getX().toBigInteger().toRadix(16), 64))
+  const y2 = _.hexToArray(_.leftPad(p.getY().toBigInteger().toRadix(16), 64))
+
+  // c3 = hash(x2 || msg || y2)
+  const c3 = _.arrayToHex(sm3([].concat(x2, msg, y2)))
+
+  let ct = 1
+  let offset = 0
+  let t = [] // 256 位
+  const z = [].concat(x2, y2)
+  const nextT = () => {
+    // (1) Hai = hash(z || ct)
+    // (2) ct++
+    t = sm3([...z, ct >> 24 & 0x00ff, ct >> 16 & 0x00ff, ct >> 8 & 0x00ff, ct & 0x00ff])
+    ct++
+    offset = 0
   }
-  const xHex = publicKey.substr(0, 64)
-  const yHex = publicKey.substr(64)
-  publicKey = cipher.createPoint(xHex, yHex)
+  nextT() // 先生成 Ha1
 
-  const c1 = cipher.initEncipher(publicKey)
+  for (let i = 0, len = msg.length; i < len; i++) {
+    // t = Ha1 || Ha2 || Ha3 || Ha4
+    if (offset === t.length) nextT()
 
-  cipher.encryptBlock(msg)
+    // c2 = msg ^ t
+    msg[i] ^= t[offset++] & 0xff
+  }
   const c2 = _.arrayToHex(msg)
-
-  let c3 = new Array(32)
-  cipher.doFinal(c3)
-  c3 = _.arrayToHex(c3)
 
   return cipherMode === C1C2C3 ? c1 + c2 + c3 : c1 + c3 + c2
 }
@@ -38,38 +58,48 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
  * 解密
  */
 function doDecrypt(encryptData, privateKey, cipherMode = 1) {
-  const cipher = new SM2Cipher()
-
   privateKey = new BigInteger(privateKey, 16)
-
-  const c1X = encryptData.substr(0, 64)
-  const c1Y = encryptData.substr(0 + c1X.length, 64)
-  const c1Length = c1X.length + c1Y.length
-
-  let c3 = encryptData.substr(c1Length, 64)
-  let c2 = encryptData.substr(c1Length + 64)
-
+  
+  let c3 = encryptData.substr(128, 64)
+  let c2 = encryptData.substr(128 + 64)
+  
   if (cipherMode === C1C2C3) {
     c3 = encryptData.substr(encryptData.length - 64)
-    c2 = encryptData.substr(c1Length, encryptData.length - c1Length - 64)
+    c2 = encryptData.substr(128, encryptData.length - 128 - 64)
+  }
+  
+  const msg = _.hexToArray(c2)
+  const c1 = _.getGlobalCurve().decodePointHex('04' + encryptData.substr(0, 128))
+  
+  const p = c1.multiply(privateKey)
+  const x2 = _.hexToArray(_.leftPad(p.getX().toBigInteger().toRadix(16), 64))
+  const y2 = _.hexToArray(_.leftPad(p.getY().toBigInteger().toRadix(16), 64))
+
+  let ct = 1
+  let offset = 0
+  let t = [] // 256 位
+  const z = [].concat(x2, y2)
+  const nextT = () => {
+    // (1) Hai = hash(z || ct)
+    // (2) ct++
+    t = sm3([...z, ct >> 24 & 0x00ff, ct >> 16 & 0x00ff, ct >> 8 & 0x00ff, ct & 0x00ff])
+    ct++
+    offset = 0
+  }
+  nextT() // 先生成 Ha1
+
+  for (let i = 0, len = msg.length; i < len; i++) {
+    // t = Ha1 || Ha2 || Ha3 || Ha4
+    if (offset === t.length) nextT()
+
+    // c2 = msg ^ t
+    msg[i] ^= t[offset++] & 0xff
   }
 
-  const data = _.hexToArray(c2)
+  // c3 = hash(x2 || msg || y2)
+  const checkC3 = _.arrayToHex(sm3([].concat(x2, msg, y2)))
 
-  const c1 = cipher.createPoint(c1X, c1Y)
-  cipher.initDecipher(privateKey, c1)
-  cipher.decryptBlock(data)
-  const c3_ = new Array(32)
-  cipher.doFinal(c3_)
-
-  const isDecrypt = _.arrayToHex(c3_) === c3
-
-  if (isDecrypt) {
-    const decryptData = _.arrayToUtf8(data)
-    return decryptData
-  } else {
-    return ''
-  }
+  return checkC3 === c3 ? _.arrayToUtf8(msg) : ''
 }
 
 /**
@@ -78,12 +108,12 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1) {
 function doSignature(msg, privateKey, {
   pointPool, der, hash, publicKey, userId
 } = {}) {
-  let hashHex = typeof msg === 'string' ? _.parseUtf8StringToHex(msg) : _.parseArrayBufferToHex(msg)
+  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
 
   if (hash) {
     // sm3杂凑
     publicKey = publicKey || getPublicKeyFromPrivateKey(privateKey)
-    hashHex = doSm3Hash(hashHex, publicKey, userId)
+    hashHex = getHash(hashHex, publicKey, userId)
   }
 
   const dA = new BigInteger(privateKey, 16)
@@ -124,11 +154,11 @@ function doSignature(msg, privateKey, {
  * 验签
  */
 function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
-  let hashHex = typeof msg === 'string' ? _.parseUtf8StringToHex(msg) : _.parseArrayBufferToHex(msg)
+  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
 
   if (hash) {
     // sm3杂凑
-    hashHex = doSm3Hash(hashHex, publicKey, userId)
+    hashHex = getHash(hashHex, publicKey, userId)
   }
 
   let r; let
@@ -161,23 +191,27 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
 
 /**
  * sm3杂凑算法
- * 计算M值: Hash(za || msg)
  */
-function doSm3Hash(hashHex, publicKey, userId = '1234567812345678') {
-  const smDigest = new SM3Digest()
+function getHash(hashHex, publicKey, userId = '1234567812345678') {
+  // z = hash(entl || userId || a || b || gx || gy || px || py)
+  userId = _.utf8ToHex(userId)
+  const a = _.leftPad(G.curve.a.toBigInteger().toRadix(16), 64)
+  const b = _.leftPad(G.curve.b.toBigInteger().toRadix(16), 64)
+  const gx = _.leftPad(G.getX().toBigInteger().toRadix(16), 64)
+  const gy = _.leftPad(G.getY().toBigInteger().toRadix(16), 64)
+  if (publicKey.length > 128) publicKey = publicKey.substr(2, 128) // 干掉 '04'
+  const px = publicKey.substr(0, 64)
+  const py = publicKey.substr(64, 64)
+  const data = _.hexToArray(userId + a + b + gx + gy + px + py)
 
-  const z = new SM3Digest().getZ(G, publicKey.substr(2, 128), userId)
-  const zValue = _.hexToArray(_.arrayToHex(z).toString())
+  const entl = userId.length * 4
+  data.unshift(entl & 0x00ff)
+  data.unshift(entl & 0xff00)
 
-  const p = hashHex
-  const pValue = _.hexToArray(p)
+  const z = sm3(data)
 
-  const hashData = new Array(smDigest.getDigestSize())
-  smDigest.blockUpdate(zValue, 0, zValue.length)
-  smDigest.blockUpdate(pValue, 0, pValue.length)
-  smDigest.doFinal(hashData, 0)
-
-  return _.arrayToHex(hashData).toString()
+  // e = hash(z || msg)
+  return _.arrayToHex(sm3(z.concat(_.hexToArray(hashHex))))
 }
 
 /**
