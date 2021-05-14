@@ -75,7 +75,7 @@ function utf8ToHex(input) {
 /**
  * utf8串转字节数组
  */
- function utf8ToArray(str) {
+function utf8ToArray(str) {
   const arr = []
 
   for (let i = 0, len = str.length; i < len; i++) {

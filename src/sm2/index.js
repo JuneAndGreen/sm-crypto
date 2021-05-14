@@ -12,7 +12,7 @@ const C1C2C3 = 0
  */
 function doEncrypt(msg, publicKey, cipherMode = 1) {
   msg = _.hexToArray(_.utf8ToHex(msg))
-  publicKey =  _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
+  publicKey = _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
 
   const keypair = _.generateKeyPairHex()
   const k = new BigInteger(keypair.privateKey, 16) // 随机数 k
@@ -59,18 +59,18 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
  */
 function doDecrypt(encryptData, privateKey, cipherMode = 1) {
   privateKey = new BigInteger(privateKey, 16)
-  
+
   let c3 = encryptData.substr(128, 64)
   let c2 = encryptData.substr(128 + 64)
-  
+
   if (cipherMode === C1C2C3) {
     c3 = encryptData.substr(encryptData.length - 64)
     c2 = encryptData.substr(128, encryptData.length - 128 - 64)
   }
-  
+
   const msg = _.hexToArray(c2)
   const c1 = _.getGlobalCurve().decodePointHex('04' + encryptData.substr(0, 128))
-  
+
   const p = c1.multiply(privateKey)
   const x2 = _.hexToArray(_.leftPad(p.getX().toBigInteger().toRadix(16), 64))
   const y2 = _.hexToArray(_.leftPad(p.getY().toBigInteger().toRadix(16), 64))
