@@ -1,6 +1,5 @@
 /* eslint-disable no-bitwise, no-mixed-operators, complexity */
 const DECRYPT = 0
-const CBC = 0
 const ROUND = 32
 const BLOCK = 16
 
@@ -160,10 +159,10 @@ function sms4Crypt(input, output, roundKey) {
   // 字节数组转成字数组（此处 1 字 = 32 比特）
   const tmp = new Array(4)
   for (let i = 0; i < 4; i++) {
-    tmp[0] = input[0 + 4 * i] & 0xff
-    tmp[1] = input[1 + 4 * i] & 0xff
-    tmp[2] = input[2 + 4 * i] & 0xff
-    tmp[3] = input[3 + 4 * i] & 0xff
+    tmp[0] = input[4 * i] & 0xff
+    tmp[1] = input[4 * i + 1] & 0xff
+    tmp[2] = input[4 * i + 2] & 0xff
+    tmp[3] = input[4 * i + 3] & 0xff
     x[i] = tmp[0] << 24 | tmp[1] << 16 | tmp[2] << 8 | tmp[3]
   }
 
@@ -238,9 +237,16 @@ function sms4KeyExt(key, roundKey, cryptFlag) {
   }
 }
 
-function sm4(inArray, key, cryptFlag, {padding = 'pkcs#5', mode, output = 'string'} = {}) {
-  if (mode === CBC) {
+function sm4(inArray, key, cryptFlag, {
+  padding = 'pkcs#5', mode, iv = [], output = 'string'
+} = {}) {
+  if (mode === 'cbc') {
     // @TODO，CBC 模式，默认走 ECB 模式
+    if (typeof iv === 'string') iv = hexToArray(iv)
+    if (iv.length !== (128 / 8)) {
+      // iv 不是 128 比特
+      throw new Error('iv is invalid')
+    }
   }
 
   // 检查 key
@@ -274,15 +280,44 @@ function sm4(inArray, key, cryptFlag, {padding = 'pkcs#5', mode, output = 'strin
   sms4KeyExt(key, roundKey, cryptFlag)
 
   const outArray = []
+  let lastVector = iv
   let restLen = inArray.length
   let point = 0
   while (restLen >= BLOCK) {
     const input = inArray.slice(point, point + 16)
     const output = new Array(16)
+
+    if (mode === 'cbc') {
+      for (let i = 0; i < BLOCK; i++) {
+        if (cryptFlag !== DECRYPT) {
+          // 加密过程在组加密前进行异或
+          input[i] ^= lastVector[i]
+        }
+      }
+    }
+
     sms4Crypt(input, output, roundKey)
 
+
     for (let i = 0; i < BLOCK; i++) {
+      if (mode === 'cbc') {
+        if (cryptFlag === DECRYPT) {
+          // 解密过程在组解密后进行异或
+          output[i] ^= lastVector[i]
+        }
+      }
+
       outArray[point + i] = output[i]
+    }
+
+    if (mode === 'cbc') {
+      if (cryptFlag !== DECRYPT) {
+        // 使用上一次输出作为加密向量
+        lastVector = output
+      } else {
+        // 使用上一次输入作为解密向量
+        lastVector = input
+      }
     }
 
     restLen -= BLOCK

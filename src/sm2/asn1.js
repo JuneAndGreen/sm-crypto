@@ -16,7 +16,7 @@ function bigintToValue(bigint) {
     else if (!h.match(/^[0-7]/)) len += 2 // 非0开头，则补一个全0字节
 
     let mask = ''
-    for (let i = 0; i < xorLen; i++) mask += 'f'
+    for (let i = 0; i < len; i++) mask += 'f'
     mask = new BigInteger(mask, 16)
 
     // 对绝对值取反，加1
@@ -142,9 +142,9 @@ module.exports = {
     // 结构：
     // input = | tSeq | lSeq | vSeq |
     // vSeq = | tR | lR | vR | tS | lS | vS |
-    const start= getStartOfV(input, 0)
+    const start = getStartOfV(input, 0)
 
-    const vIndexR= getStartOfV(input, start)
+    const vIndexR = getStartOfV(input, start)
     const lR = getL(input, start)
     const vR = input.substr(vIndexR, lR * 2)
 

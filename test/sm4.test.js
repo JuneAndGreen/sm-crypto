@@ -9,7 +9,10 @@ const outputHexStr_2 = '681edf34d206965e86b3e94f536e4246'
 const outputHexStr_3 = '681edf34d206965e86b3e94f536e4246681edf34d206965e86b3e94f536e4246002a8a4efa863ccad024ac0300bb40d2'
 const input2 = [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x20, 0xe6, 0x88, 0x91, 0xe6, 0x98, 0xaf, 0x20, 0x6a, 0x75, 0x6e, 0x65, 0x61, 0x6e, 0x64, 0x67, 0x72, 0x65, 0x65, 0x6e, 0x2e]
 const output2HexStr = '0e395deb10f6e8a17e17823e1fd9bd98a1bff1df508b5b8a1efb79ec633d1bb129432ac1b74972dbe97bab04f024e89c'
+const output3HexStr = '0d6cfa73c823b2ac0d6a92c564171892000fbea90be7a4d440bc58a9044fcb5f3d1615d91a6dbfb4dfb0c6915071527b'
 const output2 = [0x0e, 0x39, 0x5d, 0xeb, 0x10, 0xf6, 0xe8, 0xa1, 0x7e, 0x17, 0x82, 0x3e, 0x1f, 0xd9, 0xbd, 0x98, 0xa1, 0xbf, 0xf1, 0xdf, 0x50, 0x8b, 0x5b, 0x8a, 0x1e, 0xfb, 0x79, 0xec, 0x63, 0x3d, 0x1b, 0xb1, 0x29, 0x43, 0x2a, 0xc1, 0xb7, 0x49, 0x72, 0xdb, 0xe9, 0x7b, 0xab, 0x04, 0xf0, 0x24, 0xe8, 0x9c]
+const iv = [0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]
+const ivHexStr = 'fedcba98765432100123456789abcdef'
 const key = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10]
 const keyHexStr = '0123456789abcdeffedcba9876543210'
 
@@ -20,6 +23,8 @@ test('sm4: encrypt a group', () => {
     expect(sm4.encrypt(input, key, {padding: 'none', output: 'array'})).toEqual(output_2)
     expect(sm4.encrypt(msg, keyHexStr)).toBe(output2HexStr)
     expect(sm4.encrypt(msg, keyHexStr, {output: 'array'})).toEqual(output2)
+    expect(sm4.encrypt(msg, keyHexStr, {mode: 'cbc', iv})).toBe(output3HexStr)
+    expect(sm4.encrypt(msg, keyHexStr, {mode: 'cbc', iv: ivHexStr})).toBe(output3HexStr)
     expect(sm4.encrypt(input2, keyHexStr)).toBe(output2HexStr)
     expect(sm4.encrypt(input2, keyHexStr, {output: 'array'})).toEqual(output2)
 })
@@ -32,6 +37,8 @@ test('sm4: decrypt a group', () => {
     expect(sm4.decrypt(output2HexStr, keyHexStr)).toBe(msg)
     expect(sm4.decrypt(output2, keyHexStr)).toBe(msg)
     expect(sm4.decrypt(output2HexStr, keyHexStr, {output: 'array'})).toEqual(input2)
+    expect(sm4.decrypt(output3HexStr, keyHexStr, {mode: 'cbc', iv})).toBe(msg)
+    expect(sm4.decrypt(output3HexStr, keyHexStr, {mode: 'cbc', iv: ivHexStr})).toBe(msg)
     expect(sm4.decrypt(output2, keyHexStr, {output: 'array'})).toEqual(input2)
 })
 
