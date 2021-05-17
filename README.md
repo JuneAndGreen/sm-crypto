@@ -117,6 +117,7 @@ const key = '0123456789abcdeffedcba9876543210' // 可以为 16 进制串或字�
 let encryptData = sm4.encrypt(msg, key) // 加密，默认输出 16 进制字符串，默认使用 pkcs#5 填充
 let encryptData = sm4.encrypt(msg, key, {padding: 'none'}) // 加密，不使用 padding
 let encryptData = sm4.encrypt(msg, key, {padding: 'none', output: 'array'}) // 加密，不使用 padding，输出为字节数组
+let encryptData = sm4.encrypt(msg, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 加密，cbc 模式
 ```
 
 ### 解密
@@ -129,6 +130,7 @@ const key = '0123456789abcdeffedcba9876543210' // 可以为 16 进制串或字�
 let decryptData = sm4.decrypt(encryptData, key) // 解密，默认输出 utf8 字符串，默认使用 pkcs#5 填充
 let decryptData = sm4.decrypt(encryptData, key, {padding: 'none'}) // 解密，不使用 padding
 let decryptData = sm4.decrypt(encryptData, key, {padding: 'none', output: 'array'}) // 解密，不使用 padding，输出为字节数组
+let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 解密，cbc 模式
 ```
 
 ## 协议
