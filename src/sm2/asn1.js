@@ -1,242 +1,160 @@
 /* eslint-disable class-methods-use-this */
 const {BigInteger} = require('jsbn')
 
-function bigIntToMinTwosComplementsHex(bigIntegerValue) {
-  let h = bigIntegerValue.toString(16)
-  if (h.substr(0, 1) !== '-') {
-    if (h.length % 2 === 1) {
-      h = '0' + h
-    } else if (!h.match(/^[0-7]/)) {
-      h = '00' + h
-    }
+function bigintToValue(bigint) {
+  let h = bigint.toString(16)
+  if (h[0] !== '-') {
+    // 正数
+    if (h.length % 2 === 1) h = '0' + h // 补齐到整字节
+    else if (!h.match(/^[0-7]/)) h = '00' + h // 非0开头，则补一个全0字节
   } else {
-    const hPos = h.substr(1)
-    let xorLen = hPos.length
-    if (xorLen % 2 === 1) {
-      xorLen += 1
-    } else if (!h.match(/^[0-7]/)) {
-      xorLen += 2
-    }
-    let hMask = ''
-    for (let i = 0; i < xorLen; i++) {
-      hMask += 'f'
-    }
-    const biMask = new BigInteger(hMask, 16)
-    const biNeg = biMask.xor(bigIntegerValue).add(BigInteger.ONE)
-    h = biNeg.toString(16).replace(/^-/, '')
+    // 负数
+    h = h.substr(1)
+
+    let len = h.length
+    if (len % 2 === 1) len += 1 // 补齐到整字节
+    else if (!h.match(/^[0-7]/)) len += 2 // 非0开头，则补一个全0字节
+
+    let mask = ''
+    for (let i = 0; i < xorLen; i++) mask += 'f'
+    mask = new BigInteger(mask, 16)
+
+    // 对绝对值取反，加1
+    h = mask.xor(bigint).add(BigInteger.ONE)
+    h = h.toString(16).replace(/^-/, '')
   }
   return h
 }
 
-/**
- * base class for ASN.1 DER encoder object
- */
 class ASN1Object {
   constructor() {
-    this.isModified = true
-    this.hTLV = null
-    this.hT = '00'
-    this.hL = '00'
-    this.hV = ''
+    this.tlv = null
+    this.t = '00'
+    this.l = '00'
+    this.v = ''
   }
 
   /**
-   * get hexadecimal ASN.1 TLV length(L) bytes from TLV value(V)
-   */
-  getLengthHexFromValue() {
-    const n = this.hV.length / 2
-    let hN = n.toString(16)
-    if (hN.length % 2 === 1) {
-      hN = '0' + hN
-    }
-    if (n < 128) {
-      return hN
-    } else {
-      const hNlen = hN.length / 2
-      const head = 128 + hNlen
-      return head.toString(16) + hN
-    }
-  }
-
-  /**
-   * get hexadecimal string of ASN.1 TLV bytes
+   * 获取 der 编码比特流16进制串
    */
   getEncodedHex() {
-    if (this.hTLV == null || this.isModified) {
-      this.hV = this.getFreshValueHex()
-      this.hL = this.getLengthHexFromValue()
-      this.hTLV = this.hT + this.hL + this.hV
-      this.isModified = false
+    if (!this.tlv) {
+      this.v = this.getValue()
+      this.l = this.getLength()
+      this.tlv = this.t + this.l + this.v
     }
-    return this.hTLV
+    return this.tlv
   }
 
-  getFreshValueHex() {
+  getLength() {
+    const n = this.v.length / 2 // 字节数
+    let nHex = n.toString(16)
+    if (nHex.length % 2 === 1) nHex = '0' + nHex // 补齐到整字节
+
+    if (n < 128) {
+      // 短格式，以 0 开头
+      return nHex
+    } else {
+      // 长格式，以 1 开头
+      const head = 128 + nHex.length / 2 // 1(1位) + 真正的长度占用字节数(7位) + 真正的长度
+      return head.toString(16) + nHex
+    }
+  }
+
+  getValue() {
     return ''
   }
 }
 
-/**
- * class for ASN.1 DER Integer
- */
 class DERInteger extends ASN1Object {
-  constructor(options) {
+  constructor(bigint) {
     super()
 
-    this.hT = '02'
-    if (options && options.bigint) {
-      this.hTLV = null
-      this.isModified = true
-      this.hV = bigIntToMinTwosComplementsHex(options.bigint)
-    }
+    this.t = '02' // 整型标签说明
+    if (bigint) this.v = bigintToValue(bigint)
   }
 
-  getFreshValueHex() {
-    return this.hV
+  getValue() {
+    return this.v
   }
 }
 
-/**
- * class for ASN.1 DER Sequence
- */
 class DERSequence extends ASN1Object {
-  constructor(options) {
+  constructor(asn1Array) {
     super()
 
-    this.hT = '30'
-    this.asn1Array = []
-    if (options && options.array) {
-      this.asn1Array = options.array
-    }
+    this.t = '30' // 序列标签说明
+    this.asn1Array = asn1Array
   }
 
-  getFreshValueHex() {
-    let h = ''
-    for (let i = 0; i < this.asn1Array.length; i++) {
-      const asn1Obj = this.asn1Array[i]
-      h += asn1Obj.getEncodedHex()
-    }
-    this.hV = h
-    return this.hV
+  getValue() {
+    this.v = this.asn1Array.map(asn1Object => asn1Object.getEncodedHex()).join('')
+    return this.v
   }
 }
 
 /**
- * get byte length for ASN.1 L(length) bytes
+ * 获取 l 占用字节数
  */
-function getByteLengthOfL(s, pos) {
-  if (s.substring(pos + 2, pos + 3) !== '8') return 1
-  const i = parseInt(s.substring(pos + 3, pos + 4), 10)
-  if (i === 0) return -1 // length octet '80' indefinite length
-  if (i > 0 && i < 10) return i + 1 // including '8?' octet;
-  return -2 // malformed format
+function getLenOfL(str, start) {
+  if (+str[start + 2] < 8) return 1 // l 以0开头，则表示短格式，只占一个字节
+  return +str.substr(start + 2, 2) & 0x7f + 1 // 长格式，取第一个字节后7位作为长度真正占用字节数，再加上本身
 }
 
 /**
- * get hexadecimal string for ASN.1 L(length) bytes
+ * 获取 l
  */
-function getHexOfL(s, pos) {
-  const len = getByteLengthOfL(s, pos)
-  if (len < 1) return ''
-  return s.substring(pos + 2, pos + 2 + len * 2)
+function getL(str, start) {
+  // 获取 l
+  const len = getLenOfL(str, start)
+  const l = str.substr(start + 2, len * 2)
+
+  if (!l) return -1
+  const bigint = +l[0] < 8 ? new BigInteger(l, 16) : new BigInteger(l.substr(2), 16)
+
+  return bigint.intValue()
 }
 
 /**
- * get integer value of ASN.1 length for ASN.1 data
+ * 获取 v 的位置
  */
-function getIntOfL(s, pos) {
-  const hLength = getHexOfL(s, pos)
-  if (hLength === '') return -1
-  let bi
-  if (parseInt(hLength.substring(0, 1), 10) < 8) {
-    bi = new BigInteger(hLength, 16)
-  } else {
-    bi = new BigInteger(hLength.substring(2), 16)
-  }
-  return bi.intValue()
-}
-
-/**
- * get ASN.1 value starting string position for ASN.1 object refered by index 'idx'.
- */
-function getStartPosOfV(s, pos) {
-  const lLen = getByteLengthOfL(s, pos)
-  if (lLen < 0) return lLen
-  return pos + (lLen + 1) * 2
-}
-
-/**
- * get hexadecimal string of ASN.1 V(value)
- */
-function getHexOfV(s, pos) {
-  const pos1 = getStartPosOfV(s, pos)
-  const len = getIntOfL(s, pos)
-  return s.substring(pos1, pos1 + len * 2)
-}
-
-/**
- * get next sibling starting index for ASN.1 object string
- */
-function getPosOfNextSibling(s, pos) {
-  const pos1 = getStartPosOfV(s, pos)
-  const len = getIntOfL(s, pos)
-  return pos1 + len * 2
-}
-
-/**
- * get array of indexes of child ASN.1 objects
- */
-function getPosArrayOfChildren(h, pos) {
-  const a = []
-  const p0 = getStartPosOfV(h, pos)
-  a.push(p0)
-
-  const len = getIntOfL(h, pos)
-  let p = p0
-  let k = 0
-  for (;;) {
-    const pNext = getPosOfNextSibling(h, p)
-    if (pNext == null || (pNext - p0 >= (len * 2))) break
-    if (k >= 200) break
-
-    a.push(pNext)
-    p = pNext
-
-    k++
-  }
-
-  return a
+function getStartOfV(str, start) {
+  const len = getLenOfL(str, start)
+  return start + (len + 1) * 2
 }
 
 module.exports = {
   /**
-   * ASN.1 DER编码
+   * ASN.1 der 编码，针对 sm2 签名
    */
   encodeDer(r, s) {
-    const derR = new DERInteger({bigint: r})
-    const derS = new DERInteger({bigint: s})
-    const derSeq = new DERSequence({array: [derR, derS]})
+    const derR = new DERInteger(r)
+    const derS = new DERInteger(s)
+    const derSeq = new DERSequence([derR, derS])
 
     return derSeq.getEncodedHex()
   },
 
   /**
-   * 解析 ASN.1 DER
+   * 解析 ASN.1 der，针对 sm2 验签
    */
   decodeDer(input) {
-    // 1. Items of ASN.1 Sequence Check
-    const a = getPosArrayOfChildren(input, 0)
+    // 结构：
+    // input = | tSeq | lSeq | vSeq |
+    // vSeq = | tR | lR | vR | tS | lS | vS |
+    const start= getStartOfV(input, 0)
 
-    // 2. Integer check
-    const iTLV1 = a[0]
-    const iTLV2 = a[1]
+    const vIndexR= getStartOfV(input, start)
+    const lR = getL(input, start)
+    const vR = input.substr(vIndexR, lR * 2)
 
-    // 3. getting value
-    const hR = getHexOfV(input, iTLV1)
-    const hS = getHexOfV(input, iTLV2)
+    const nextStart = vIndexR + vR.length
+    const vIndexS = getStartOfV(input, nextStart)
+    const lS = getL(input, nextStart)
+    const vS = input.substr(vIndexS, lS * 2)
 
-    const r = new BigInteger(hR, 16)
-    const s = new BigInteger(hS, 16)
+    const r = new BigInteger(vR, 16)
+    const s = new BigInteger(vS, 16)
 
     return {r, s}
   }

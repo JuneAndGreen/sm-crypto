@@ -142,10 +142,7 @@ function doSignature(msg, privateKey, {
     s = dA.add(BigInteger.ONE).modInverse(n).multiply(k.subtract(r.multiply(dA))).mod(n)
   } while (s.equals(BigInteger.ZERO))
 
-  if (der) {
-    // asn1 der编码
-    return encodeDer(r, s)
-  }
+  if (der) return encodeDer(r, s) // asn.1 der 编码
 
   return _.leftPad(r.toString(16), 64) + _.leftPad(s.toString(16), 64)
 }
@@ -164,7 +161,7 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
   let r; let
     s
   if (der) {
-    const decodeDerObj = decodeDer(signHex)
+    const decodeDerObj = decodeDer(signHex) // asn.1 der 解码
     r = decodeDerObj.r
     s = decodeDerObj.s
   } else {
