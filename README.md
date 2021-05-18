@@ -94,7 +94,7 @@ let verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
 ```js
 const sm2 = require('sm-crypto').sm2
 
-let poin = sm2.getPoint() // 获取一个椭圆曲线点，可在sm2签名时传入
+let point = sm2.getPoint() // 获取一个椭圆曲线点，可在sm2签名时传入
 ```
 
 ## sm3
