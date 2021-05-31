@@ -241,7 +241,7 @@ function sm4(inArray, key, cryptFlag, {
   padding = 'pkcs#5', mode, iv = [], output = 'string'
 } = {}) {
   if (mode === 'cbc') {
-    // @TODO，CBC 模式，默认走 ECB 模式
+    // CBC 模式，默认走 ECB 模式
     if (typeof iv === 'string') iv = hexToArray(iv)
     if (iv.length !== (128 / 8)) {
       // iv 不是 128 比特
