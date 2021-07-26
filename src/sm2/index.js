@@ -203,7 +203,7 @@ function getHash(hashHex, publicKey, userId = '1234567812345678') {
 
   const entl = userId.length * 4
   data.unshift(entl & 0x00ff)
-  data.unshift(entl & 0xff00)
+  data.unshift(entl >> 8 & 0x00ff)
 
   const z = sm3(data)
 
