@@ -19,6 +19,15 @@ beforeAll(() => {
 test('sm2: generate keypair', () => {
     expect(publicKey.length).toBe(130)
     expect(privateKey.length).toBe(64)
+    expect(sm2.verifyPublicKey(publicKey)).toBe(true)
+
+    // 自定义随机数
+    const random = []
+    for (let i = 0; i < 20; i++) random.push(~~(Math.random() * 10))
+    const keypair2 = sm2.generateKeyPairHex(random.join(''))
+    expect(keypair2.publicKey.length).toBe(130)
+    expect(keypair2.privateKey.length).toBe(64)
+    expect(sm2.verifyPublicKey(keypair2.publicKey)).toBe(true)
 })
 
 test('sm2: encrypt and decrypt data', () => {

@@ -241,4 +241,5 @@ module.exports = {
   doSignature,
   doVerifySignature,
   getPoint,
+  verifyPublicKey: _.verifyPublicKey,
 }
