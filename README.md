@@ -3,6 +3,8 @@
 国密算法sm2、sm3和sm4的js版。
 
 > PS: 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
+>
+> PS: java 移植版（感谢 @antherd 提供）：[https://github.com/antherd/sm-crypto/](https://github.com/antherd/sm-crypto/)
 
 ## 安装
 
