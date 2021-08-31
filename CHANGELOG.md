@@ -1,3 +1,7 @@
+## 0.3.5
+
+* sm2.generateKeyPairHex 支持完整的 BigInteger 入参
+
 ## 0.3.4
 
 * sm2 支持验证公钥接口

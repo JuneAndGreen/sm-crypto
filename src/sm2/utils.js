@@ -35,8 +35,8 @@ function generateEcparam() {
 /**
  * 生成密钥对：publicKey = privateKey * G
  */
-function generateKeyPairHex(random) {
-  random = random ? new BigInteger(random) : new BigInteger(n.bitLength(), rng)
+function generateKeyPairHex(a, b, c) {
+  const random = a ? new BigInteger(a, b, c) : new BigInteger(n.bitLength(), rng)
   const d = random.mod(n.subtract(BigInteger.ONE)).add(BigInteger.ONE) // 随机数
   const privateKey = leftPad(d.toString(16), 64)
 

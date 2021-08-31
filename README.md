@@ -24,7 +24,11 @@ let keypair = sm2.generateKeyPairHex()
 publicKey = keypair.publicKey // 公钥
 privateKey = keypair.privateKey // 私钥
 
-let keypair2 = sm2.generateKeyPairHex('123123123123123') // 自定义随机数
+// 自定义随机数，参数会直接透传给 jsbn 库的 BigInteger 构造器
+// 注意：开发者使用自定义随机数，需要自行确保传入的随机数符合密码学安全
+let keypair2 = sm2.generateKeyPairHex('123123123123123')
+let keypair3 = sm2.generateKeyPairHex(256, SecureRandom)
+
 let verifyResult = sm2.verifyPublicKey(publicKey) // 验证公钥
 ```
 
