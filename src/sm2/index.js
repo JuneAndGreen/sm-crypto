@@ -11,7 +11,7 @@ const C1C2C3 = 0
  * 加密
  */
 function doEncrypt(msg, publicKey, cipherMode = 1) {
-  msg = _.hexToArray(_.utf8ToHex(msg))
+  msg = typeof msg === 'string' ? _.hexToArray(_.utf8ToHex(msg)) : Array.prototype.slice.call(msg)
   publicKey = _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
 
   const keypair = _.generateKeyPairHex()
@@ -57,7 +57,9 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
 /**
  * 解密
  */
-function doDecrypt(encryptData, privateKey, cipherMode = 1) {
+function doDecrypt(encryptData, privateKey, cipherMode = 1, {
+  output = 'string',
+} = {}) {
   privateKey = new BigInteger(privateKey, 16)
 
   let c3 = encryptData.substr(128, 64)
@@ -99,7 +101,11 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1) {
   // c3 = hash(x2 || msg || y2)
   const checkC3 = _.arrayToHex(sm3([].concat(x2, msg, y2)))
 
-  return checkC3 === c3 ? _.arrayToUtf8(msg) : ''
+  if (checkC3 === c3) {
+    return output === 'array' ? msg : _.arrayToUtf8(msg)
+  } else {
+    return output === 'array' ? [] : ''
+  }
 }
 
 /**

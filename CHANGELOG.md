@@ -1,3 +1,7 @@
+## 0.3.6
+
+* sm2 加解密支持二进制数据
+
 ## 0.3.5
 
 * sm2.generateKeyPairHex 支持完整的 BigInteger 入参

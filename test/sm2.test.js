@@ -36,11 +36,19 @@ test('sm2: encrypt and decrypt data', () => {
     expect(decryptData).toBe(msgString)
 
     for (let i = 0; i < 100; i++) {
-        let encryptData = sm2.doEncrypt(msgString, publicKey, cipherMode)
-        let decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode)
-
+        encryptData = sm2.doEncrypt(msgString, publicKey, cipherMode)
+        decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode)
         expect(decryptData).toBe(msgString)
     }
+
+    encryptData = sm2.doEncrypt([0x61, 0x62, 0x73, 0x61, 0x73, 0x64, 0x61, 0x67, 0x66, 0x61, 0x64, 0x67, 0x61, 0x64, 0x73, 0x66, 0x64, 0x66, 0x64, 0x73, 0x66], publicKey, cipherMode)
+    decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode)
+    expect(decryptData).toBe(msgString)
+    encryptData = sm2.doEncrypt(Uint8Array.from([0x61, 0x62, 0x73, 0x61, 0x73, 0x64, 0x61, 0x67, 0x66, 0x61, 0x64, 0x67, 0x61, 0x64, 0x73, 0x66, 0x64, 0x66, 0x64, 0x73, 0x66]), publicKey, cipherMode)
+    decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode)
+    expect(decryptData).toBe(msgString)
+    decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode, {output: 'array'})
+    expect(decryptData).toEqual([0x61, 0x62, 0x73, 0x61, 0x73, 0x64, 0x61, 0x67, 0x66, 0x61, 0x64, 0x67, 0x61, 0x64, 0x73, 0x66, 0x64, 0x66, 0x64, 0x73, 0x66])
 })
 
 test('sm2: sign data and verify sign', () => {
