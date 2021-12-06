@@ -19,6 +19,8 @@ const keyHexStr = '0123456789abcdeffedcba9876543210'
 test('sm4: encrypt a group', () => {
     expect(sm4.encrypt(input, key)).toBe(outputHexStr_1)
     expect(sm4.encrypt(input, key, {output: 'array'})).toEqual(output_1)
+    expect(sm4.encrypt(input, key, {padding: 'pkcs#5'})).toBe(outputHexStr_1)
+    expect(sm4.encrypt(input, key, {padding: 'pkcs#5', output: 'array'})).toEqual(output_1)
     expect(sm4.encrypt(input, key, {padding: 'none'})).toBe(outputHexStr_2)
     expect(sm4.encrypt(input, key, {padding: 'none', output: 'array'})).toEqual(output_2)
     expect(sm4.encrypt(msg, keyHexStr)).toBe(output2HexStr)

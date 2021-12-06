@@ -238,7 +238,7 @@ function sms4KeyExt(key, roundKey, cryptFlag) {
 }
 
 function sm4(inArray, key, cryptFlag, {
-  padding = 'pkcs#5', mode, iv = [], output = 'string'
+  padding = 'pkcs#7', mode, iv = [], output = 'string'
 } = {}) {
   if (mode === 'cbc') {
     // CBC 模式，默认走 ECB 模式
@@ -269,8 +269,8 @@ function sm4(inArray, key, cryptFlag, {
     inArray = [...inArray]
   }
 
-  // 新增填充
-  if (padding === 'pkcs#5' && cryptFlag !== DECRYPT) {
+  // 新增填充，sm4 是 16 个字节一个分组，所以统一走到 pkcs#7
+  if ((padding === 'pkcs#5' || padding === 'pkcs#7') && cryptFlag !== DECRYPT) {
     const paddingCount = BLOCK - inArray.length % BLOCK
     for (let i = 0; i < paddingCount; i++) inArray.push(paddingCount)
   }
@@ -324,8 +324,8 @@ function sm4(inArray, key, cryptFlag, {
     point += BLOCK
   }
 
-  // 去除填充
-  if (padding === 'pkcs#5' && cryptFlag === DECRYPT) {
+  // 去除填充，sm4 是 16 个字节一个分组，所以统一走到 pkcs#7
+  if ((padding === 'pkcs#5' || padding === 'pkcs#7') && cryptFlag === DECRYPT) {
     const paddingCount = outArray[outArray.length - 1]
     outArray.splice(outArray.length - paddingCount, paddingCount)
   }
