@@ -101,7 +101,7 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1, {
   // c3 = hash(x2 || msg || y2)
   const checkC3 = _.arrayToHex(sm3([].concat(x2, msg, y2)))
 
-  if (checkC3 === c3) {
+  if (checkC3 === c3.toLowerCase()) {
     return output === 'array' ? msg : _.arrayToUtf8(msg)
   } else {
     return output === 'array' ? [] : ''
