@@ -39,3 +39,20 @@ test('sm3: long text', () => {
     const input = fs.readFileSync(path.join(__dirname, './test.jpg'))
     expect(sm3(input)).toBe('585084878e61b6b1bed61207142ea0313fa3c0c8211e44871bdaa637632ccff0')
 })
+
+/**
+ * 16 进制串转字节数组
+ */
+function hexToArray(str) {
+    const arr = []
+    for (let i = 0, len = str.length; i < len; i += 2) {
+        arr.push(parseInt(str.substr(i, 2), 16))
+    }
+    return arr
+}
+test('sm3: hex text', () => {
+    let data=hexToArray("0102030405060708");
+    let hash=sm3(data);
+    console.log(hash);//7202745FD44D66FB2EEF02F00990CA0D8006C357903C07A11853A158041A20DA
+    expect(hash).toBe('7202745FD44D66FB2EEF02F00990CA0D8006C357903C07A11853A158041A20DA');
+})
