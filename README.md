@@ -130,7 +130,7 @@ function hexToArray(str) {
     return arr
 }
 
-const sm3 = require('sm-crypto').hmac
+const hmac = require('sm-crypto').hmac
 
 let hmac_sm3=hmac(hexToArray('0102030405060708010203040506070801020304050607080102030405060708'),//input
     hexToArray('0102030405060708010203040506070801020304050607080102030405060708'));//key
