@@ -328,7 +328,7 @@ function sm4(inArray, key, cryptFlag, {
   if ((padding === 'pkcs#5' || padding === 'pkcs#7') && cryptFlag === DECRYPT) {
     const len = outArray.length
     const paddingCount = outArray[len - 1]
-    for(let i = 1; i <= paddingCount; i++) {
+    for (let i = 1; i <= paddingCount; i++) {
       if (outArray[len - i] !== paddingCount) throw new Error('padding is invalid')
     }
     outArray.splice(len - paddingCount, paddingCount)
