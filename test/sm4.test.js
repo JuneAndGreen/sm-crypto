@@ -70,3 +70,8 @@ test('sm4: encrypt a group whit 1000000 times', () => {
     }
     expect(temp).toEqual([0x59, 0x52, 0x98, 0xc7, 0xc6, 0xfd, 0x27, 0x1f, 0x04, 0x02, 0xf8, 0x04, 0xc3, 0x3d, 0x3f, 0x66])
 })
+
+test('sm4: invalid padding', () => {
+    expect(() => sm4.decrypt('a0b1aac2e6db928ddfc8a081a6661d0452b44e5720db106714ffc8cbee29bcf7d96b4d64bffd07553e6a2ee096523b7a', keyHexStr)).toThrow('padding is invalid')
+    expect(() => sm4.decrypt('a0b1aac2e6db928ddfc8a081a6661d0452b44e5720db106714ffc8cbee29bcf7d96b4d64bffd07553e6a2ee096523b7f', ivHexStr)).toThrow('padding is invalid')
+})
