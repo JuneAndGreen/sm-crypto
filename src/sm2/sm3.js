@@ -231,7 +231,7 @@ function hmac(input, key) {
   const iPadKey = xor(key, iPad)
   let hash = iPadKey.concat(input)
   hash = sm3(hash)
-  
+
   const oPadKey = xor(key, oPad)
   hash = oPadKey.concat(hash)
   hash = sm3(hash)

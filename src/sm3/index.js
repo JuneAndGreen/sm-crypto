@@ -1,4 +1,13 @@
-const { sm3, hmac } = require('../sm2/sm3')
+const {sm3, hmac} = require('../sm2/sm3')
+
+/**
+ * 补全16进制字符串
+ */
+function leftPad(input, num) {
+  if (input.length >= num) return input
+
+  return (new Array(num - input.length + 1)).join('0') + input
+}
 
 /**
  * 字节数组转 16 进制串

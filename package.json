@@ -1,6 +1,6 @@
 {
   "name": "sm-crypto",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "sm-crypto",
   "main": "src/index.js",
   "scripts": {
