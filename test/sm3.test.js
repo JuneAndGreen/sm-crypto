@@ -40,19 +40,32 @@ test('sm3: long text', () => {
     expect(sm3(input)).toBe('585084878e61b6b1bed61207142ea0313fa3c0c8211e44871bdaa637632ccff0')
 })
 
-/**
- * 16 进制串转字节数组
- */
-function hexToArray(str) {
-    const arr = []
-    for (let i = 0, len = str.length; i < len; i += 2) {
-        arr.push(parseInt(str.substr(i, 2), 16))
-    }
-    return arr
-}
-test('sm3: hex text', () => {
-    let data=hexToArray("0102030405060708");
-    let hash=sm3(data);
-    console.log(hash);//7202745FD44D66FB2EEF02F00990CA0D8006C357903C07A11853A158041A20DA
-    expect(hash).toBe('7202745FD44D66FB2EEF02F00990CA0D8006C357903C07A11853A158041A20DA');
+test('sm3: hmac', () => {
+    expect(sm3('abc', {
+        key: 'daac25c1512fe50f79b0e4526b93f5c0e1460cef40b6dd44af13caec62e8c60e0d885f3c6d6fb51e530889e6fd4ac743a6d332e68a0f2a3923f42585dceb93e9',
+    })).toBe('5c690e2b822a514017f1ccb9a61b6738714dbd17dbd6fdbc2fa662d122b6885d')
+
+    expect(sm3([0x31, 0x32, 0x33, 0x34, 0x35, 0x36], {
+        key: '31323334353637383930',
+    })).toBe('bc1f71eef901223ae7a9718e3ae1dbf97353c81acb429b491bbdbefd2195b95e')
+
+    const bytes8 = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
+
+    // 32 字节
+    const bytes32 = [].concat(bytes8, bytes8, bytes8, bytes8)
+    expect(sm3(bytes32, {
+        key: bytes32,
+    })).toBe('41e6589cde89b4f8c810a820c2fb6f0ad86bf2c136a19cfb3a5c0835f598e07b')
+
+    // 64 字节
+    const bytes64 = [].concat(bytes32, bytes32)
+    expect(sm3(bytes64, {
+        key: bytes64,
+    })).toBe('d6fb17c240930a21996373aa9fc0b1092931b016640809297911cd3f8cc9dcdd')
+
+    // 128 字节
+    const bytes128 = [].concat(bytes64, bytes64)
+    expect(sm3(bytes128, {
+        key: bytes128,
+    })).toBe('d374f8adb0e9d1f12de94c1406fe8b2d53f84129e033f0d269400de8e8e7ca1a')
 })

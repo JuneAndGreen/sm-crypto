@@ -115,28 +115,12 @@ let point = sm2.getPoint() // 获取一个椭圆曲线点，可在sm2签名时�
 const sm3 = require('sm-crypto').sm3
 
 let hashData = sm3('abc') // 杂凑
+
+// hmac
+hashData = sm3('abc', {
+    key: 'daac25c1512fe50f79b0e4526b93f5c0e1460cef40b6dd44af13caec62e8c60e0d885f3c6d6fb51e530889e6fd4ac743a6d332e68a0f2a3923f42585dceb93e9', // 要求为 16 进制串或字节数组
+})
 ```
-
-## hmac_sm3
-```js
-/**
- * 16 进制串转字节数组
- */
-function hexToArray(str) {
-    const arr = []
-    for (let i = 0, len = str.length; i < len; i += 2) {
-        arr.push(parseInt(str.substr(i, 2), 16))
-    }
-    return arr
-}
-
-const hmac = require('sm-crypto').hmac
-
-let hmac_sm3=hmac(hexToArray('0102030405060708010203040506070801020304050607080102030405060708'),//input
-    hexToArray('0102030405060708010203040506070801020304050607080102030405060708'));//key
-
-```
-
 
 ## sm4
 

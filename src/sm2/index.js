@@ -2,7 +2,7 @@
 const {BigInteger} = require('jsbn')
 const {encodeDer, decodeDer} = require('./asn1')
 const _ = require('./utils')
-const sm3 = require('./sm3')
+const sm3 = require('./sm3').sm3
 
 const {G, curve, n} = _.generateEcparam()
 const C1C2C3 = 0

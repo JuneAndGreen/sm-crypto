@@ -171,7 +171,10 @@ function CF(V, Bi) {
   return xor([].concat(A, B, C, D, E, F, G, H), V)
 }
 
-module.exports = function (array) {
+/**
+ * sm3 本体
+ */
+function sm3(array) {
   // 填充
   let len = array.length * 8
 
@@ -208,4 +211,35 @@ module.exports = function (array) {
     V = CF(V, B)
   }
   return V
+}
+
+/**
+ * hmac 实现
+ */
+const blockLen = 64
+const iPad = new Array(blockLen)
+const oPad = new Array(blockLen)
+for (let i = 0; i < blockLen; i++) {
+  iPad[i] = 0x36
+  oPad[i] = 0x5c
+}
+function hmac(input, key) {
+  // 密钥填充
+  if (key.length > blockLen) key = sm3(key)
+  while (key.length < blockLen) key.push(0)
+
+  const iPadKey = xor(key, iPad)
+  let hash = iPadKey.concat(input)
+  hash = sm3(hash)
+  
+  const oPadKey = xor(key, oPad)
+  hash = oPadKey.concat(hash)
+  hash = sm3(hash)
+
+  return hash
+}
+
+module.exports = {
+  sm3,
+  hmac,
 }
