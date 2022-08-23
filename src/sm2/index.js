@@ -202,9 +202,16 @@ function getHash(hashHex, publicKey, userId = '1234567812345678') {
   const b = _.leftPad(G.curve.b.toBigInteger().toRadix(16), 64)
   const gx = _.leftPad(G.getX().toBigInteger().toRadix(16), 64)
   const gy = _.leftPad(G.getY().toBigInteger().toRadix(16), 64)
-  if (publicKey.length > 128) publicKey = publicKey.substr(2, 128) // 干掉 '04'
-  const px = publicKey.substr(0, 64)
-  const py = publicKey.substr(64, 64)
+  let px
+  let py
+  if (publicKey.length === 128) {
+    px = publicKey.substr(0, 64)
+    py = publicKey.substr(64, 64)
+  } else {
+    const point = G.curve.decodePointHex(publicKey)
+    px = _.leftPad(point.getX().toBigInteger().toRadix(16), 64)
+    py = _.leftPad(point.getY().toBigInteger().toRadix(16), 64)
+  }
   const data = _.hexToArray(userId + a + b + gx + gy + px + py)
 
   const entl = userId.length * 4
@@ -242,6 +249,8 @@ function getPoint() {
 
 module.exports = {
   generateKeyPairHex: _.generateKeyPairHex,
+  compressPublicKeyHex: _.compressPublicKeyHex,
+  comparePublicKeyHex: _.comparePublicKeyHex,
   doEncrypt,
   doDecrypt,
   doSignature,

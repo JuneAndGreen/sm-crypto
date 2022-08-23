@@ -49,6 +49,22 @@ function generateKeyPairHex(a, b, c) {
 }
 
 /**
+ * 生成压缩公钥
+ */
+function compressPublicKeyHex(s) {
+  if (s.length !== 130) throw new Error('Invalid public key to compress')
+
+  const len = (s.length - 2) / 2
+  const xHex = s.substr(2, len)
+  const y = new BigInteger(s.substr(len + 2, len), 16)
+
+  let prefix = '03'
+  if (y.mod(new BigInteger('2')).equals(BigInteger.ZERO)) prefix = '02'
+
+  return prefix + xHex
+}
+
+/**
  * utf8串转16进制串
  */
 function utf8ToHex(input) {
@@ -150,14 +166,29 @@ function verifyPublicKey(publicKey) {
   return y.square().equals(x.multiply(x.square()).add(x.multiply(curve.a)).add(curve.b))
 }
 
+/**
+ * 验证公钥是否等价，等价返回true
+ */
+function comparePublicKeyHex(publicKey1, publicKey2) {
+  const point1 = curve.decodePointHex(publicKey1)
+  if (!point1) return false
+
+  const point2 = curve.decodePointHex(publicKey2)
+  if (!point2) return false
+
+  return point1.equals(point2)
+}
+
 module.exports = {
   getGlobalCurve,
   generateEcparam,
   generateKeyPairHex,
+  compressPublicKeyHex,
   utf8ToHex,
   leftPad,
   arrayToHex,
   arrayToUtf8,
   hexToArray,
   verifyPublicKey,
+  comparePublicKeyHex,
 }
