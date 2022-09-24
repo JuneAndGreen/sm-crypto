@@ -238,8 +238,30 @@ function hmac(input, key) {
 
   return hash
 }
+function hkdf_extract(ikm,salt) {
+  let prf=hmac(ikm,salt);
+  return prf;
+}
+function hkdf_expand(prk,info,l){
+  let hashLen=32;
+  let t=[];
+  let okm=[];
+  let N=Math.ceil(l/hashLen);
+  for (let i = 0; i < N; i++) {
+    t=hmac(prk,t.concat(info).concat(i+1))
+    okm=okm.concat(t);
+  }
+  return okm.slice(0,l);
+}
+function  hkdf(ikm,salt,info,len){
+  let prk=hkdf_extract(ikm,salt);
+  let okm=hkdf_expand(prk,info,len);
+  return okm;
+}
 
 module.exports = {
   sm3,
   hmac,
+  hkdf
 }
+

@@ -69,3 +69,13 @@ test('sm3: hmac', () => {
         key: bytes128,
     })).toBe('d374f8adb0e9d1f12de94c1406fe8b2d53f84129e033f0d269400de8e8e7ca1a')
 })
+test('sm3: hkdf', () => {
+    expect(sm3('abc', {
+        mode:'hkdf',
+        ikm: '0102030405060708',
+        salt: '0102030405060708',
+        info: '0102030405060708',
+        len: 70,
+    })).toBe('8def2a14158c99aec0e679409be53fa9a7868303a5572c99728c2c0a49baf6cd3ea04e5f9fd4d8af75170c0ae8a9b03b3e372a134656eec95608b3d0c8a58a4a43119fa06c99')
+
+})
