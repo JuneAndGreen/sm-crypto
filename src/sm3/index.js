@@ -1,7 +1,6 @@
-const {sm3, hmac,
-  hkdf
-} = require('../sm2/sm3')
-
+const {sm3, hmac,hkdf} = require('../sm2/sm3')
+const {pbkdf2}=require('pbkdf2')
+const {pbkdf2_sm3} = require('./pbkdf2')
 /**
  * 补全16进制字符串
  */
@@ -99,7 +98,14 @@ module.exports = function (input, options) {
       info = typeof info === 'string' ? hexToArray(info) : Array.prototype.slice.call(info)
       return ArrayToHex(hkdf(ikm,salt,info,len))
     }else if(mode=='pbkdf2'){
+        let password=options.password;
+        let salt=options.salt;
+        let c=options.c;
+        let dkLen=options.dkLen;
 
+      password = typeof password === 'string' ? hexToArray(password) : Array.prototype.slice.call(password)
+      salt = typeof salt === 'string' ? hexToArray(salt) : Array.prototype.slice.call(salt)
+      return ArrayToHex(pbkdf2_sm3(password,salt,c,dkLen))
     }else {
       throw new Error('invalid mode')
     }

@@ -79,3 +79,13 @@ test('sm3: hkdf', () => {
     })).toBe('8def2a14158c99aec0e679409be53fa9a7868303a5572c99728c2c0a49baf6cd3ea04e5f9fd4d8af75170c0ae8a9b03b3e372a134656eec95608b3d0c8a58a4a43119fa06c99')
 
 })
+test('sm3: pbdkf2', () => {
+    expect(sm3('abc', {
+        mode:'pbkdf2',
+        password: '368c1adba8b9d783',
+        salt: 'b4ab70c69fed2e09',
+        c: 1024,
+        dkLen: 32,
+    })).toBe('2375a8cbe0137d9cda66aff24ea99c5d632576a6a4ed677eaae2833c06bfbd4f')
+
+})
