@@ -122,8 +122,9 @@ function arrayToUtf8(arr) {
 /**
  * 32 比特循环左移
  */
-function rotl(x, y) {
-  return x << y | x >>> (32 - y)
+function rotl(x, n) {
+  const s = n & 31
+  return (x << s) | (x >>> (32 - s))
 }
 
 /**
