@@ -1,10 +1,6 @@
 # sm-crypto
 
-国密算法sm2、sm3和sm4的js版。
-
-> PS: 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
->
-> PS: java 移植版（感谢 @antherd 提供）：[https://github.com/antherd/sm-crypto/](https://github.com/antherd/sm-crypto/)
+国密算法sm2、sm3和sm4的js实现。
 
 ## 安装
 
@@ -155,6 +151,11 @@ let decryptData = sm4.decrypt(encryptData, key, {padding: 'none', output: 'array
 let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 解密，cbc 模式
 ```
 
+## 其他实现
+
+* 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
+* java 实现（感谢 @antherd 提供）：[https://github.com/antherd/sm-crypto](https://github.com/antherd/sm-crypto)
+* dart 实现（感谢 @luckykellan 提供）：[https://github.com/luckykellan/dart_sm](https://github.com/luckykellan/dart_sm)
 ## 协议
 
 MIT
