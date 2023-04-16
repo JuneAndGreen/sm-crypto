@@ -1,6 +1,6 @@
 {
   "name": "github-hyfre-sm-crypto",
-  "version": "0.3.12.1",
+  "version": "0.3.12",
   "description": "sm-crypto",
   "main": "src/index.js",
   "scripts": {
