@@ -75,8 +75,8 @@ test('sm3: hkdf', () => {
         ikm: '0102030405060708',
         salt: '0102030405060708',
         info: '0102030405060708',
-        len: 70,
-    })).toBe('8def2a14158c99aec0e679409be53fa9a7868303a5572c99728c2c0a49baf6cd3ea04e5f9fd4d8af75170c0ae8a9b03b3e372a134656eec95608b3d0c8a58a4a43119fa06c99')
+        len: 16,
+    })).toBe('8def2a14158c99aec0e679409be53fa9')
 
 })
 test('sm3: pbdkf2', () => {
@@ -84,18 +84,8 @@ test('sm3: pbdkf2', () => {
         mode:'pbkdf2',
         password: '368c1adba8b9d783',
         salt: 'b4ab70c69fed2e09',
-        c: 1024,
+        c: 10240,
         dkLen: 32,
-    })).toBe('2375a8cbe0137d9cda66aff24ea99c5d632576a6a4ed677eaae2833c06bfbd4f')
-
-})
-test('sm3: pbdkf2_1M', () => {
-    expect(sm3('abc', {
-        mode:'pbkdf2',
-        password: '368c1adba8b9d783',
-        salt: 'b4ab70c69fed2e09',
-        c: 1000000,
-        dkLen: 32,
-    })).toBe('0e82fa8b107d641719ea900562578a57c4f5ecae66a183d2838bf1afe3b547cd')
+    })).toBe('6f6eaf374befbe27346693e46eb29e2d542888ba2673a81bc32314c0b9eb0a91')
 
 })

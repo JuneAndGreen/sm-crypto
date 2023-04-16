@@ -2,6 +2,8 @@
 
 国密算法sm2、sm3和sm4的js实现。
 
+请勿使用此js库，此js非官方。请使用sm-crypto库。
+
 ## 安装
 
 ```bash

@@ -163,25 +163,25 @@ function hmac(input, key) {
   const hash = sm3([...iPadKey, ...input])
   return sm3([...oPadKey, ...hash])
 }
-function hkdf_extract(ikm,salt) {
-  let prf=hmac(ikm,salt);
-  return prf;
+function hkdfExtract(ikm, salt) {
+  const prf = hmac(ikm, salt)
+  return prf
 }
-function hkdf_expand(prk,info,l){
-  let hashLen=32;
-  let t=[];
-  let okm=[];
-  let N=Math.ceil(l/hashLen);
+function hkdfExpand(prk, info, l) {
+  const hashLen = 32
+  let t = []
+  let okm = []
+  const N = Math.ceil(l / hashLen)
   for (let i = 0; i < N; i++) {
-    t=hmac(prk,t.concat(info).concat(i+1))
-    okm=okm.concat(t);
+    t = hmac(prk, t.concat(info).concat(i + 1))
+    okm = okm.concat(t)
   }
-  return okm.slice(0,l);
+  return okm.slice(0, l)
 }
-function  hkdf(ikm,salt,info,len){
-  let prk=hkdf_extract(ikm,salt);
-  let okm=hkdf_expand(prk,info,len);
-  return okm;
+function hkdf(ikm, salt, info, len) {
+  const prk = hkdfExtract(ikm, salt)
+  const okm = hkdfExpand(prk, info, len)
+  return okm
 }
 
 module.exports = {
@@ -189,4 +189,3 @@ module.exports = {
   hmac,
   hkdf
 }
-
