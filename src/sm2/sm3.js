@@ -152,6 +152,7 @@ for (let i = 0; i < blockLen; i++) {
   iPad[i] = 0x36
   oPad[i] = 0x5c
 }
+
 function hmac(input, key) {
   // 密钥填充
   if (key.length > blockLen) key = sm3(key)
