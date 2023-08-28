@@ -46,6 +46,8 @@ encryptData = sm2.doEncrypt(msgArray, publicKey, cipherMode) // 加密结果，�
 decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode, {output: 'array'}) // 解密结果，输出数组
 ```
 
+> PS：密文会在解密时自动追加 `04`，如遇到其他工具追加的 `04` 需手动去除再传入
+
 ### 签名验签
 
 > ps：理论上来说，只做纯签名是最快的。
@@ -150,8 +152,6 @@ let decryptData = sm4.decrypt(encryptData, key, {padding: 'none'}) // 解密，�
 let decryptData = sm4.decrypt(encryptData, key, {padding: 'none', output: 'array'}) // 解密，不使用 padding，输出为字节数组
 let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 解密，cbc 模式
 ```
-
-> PS：密文会在解密时自动追加 `04`，如遇到其他工具追加的 `04` 需手动去除再传入
 
 ## 其他实现
 
