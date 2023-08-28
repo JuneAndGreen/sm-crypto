@@ -151,6 +151,8 @@ let decryptData = sm4.decrypt(encryptData, key, {padding: 'none', output: 'array
 let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 解密，cbc 模式
 ```
 
+> PS：密文会在解密时自动追加 `04`，如遇到其他工具追加的 `04` 需手动去除再传入
+
 ## 其他实现
 
 * 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
