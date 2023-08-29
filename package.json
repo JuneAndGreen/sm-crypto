@@ -1,5 +1,5 @@
 {
-  "name": "sm-crypto",
+  "name": "github-hyfree-sm-crypto",
   "version": "0.3.12",
   "description": "sm-crypto",
   "main": "src/index.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JuneAndGreen/sm-crypto.git"
+    "url": "git+https://github.com/hyfree/sm-crypto.git"
   },
   "keywords": [
     "sm",
@@ -22,7 +22,7 @@
     "testEnvironment": "jsdom",
     "testURL": "https://jest.test"
   },
-  "author": "june_01",
+  "author": "hyfree",
   "license": "MIT",
   "dependencies": {
     "jsbn": "^1.1.0"

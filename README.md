@@ -1,6 +1,11 @@
-# sm-crypto
+# github-hyfree-sm-crypto
+
+sm-crypto的修改版本。
+基于sm-crypto version0.3.12
 
 国密算法sm2、sm3和sm4的js实现。
+
+请勿使用此js库，此js非官方。请使用sm-crypto库。
 
 ## 安装
 

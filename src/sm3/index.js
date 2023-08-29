@@ -1,4 +1,5 @@
-const {sm3, hmac} = require('../sm2/sm3')
+const {sm3, hmac, hkdf} = require('../sm2/sm3')
+const {pbkdf2} = require('./pbkdf2')
 
 /**
  * 补全16进制字符串
@@ -81,13 +82,33 @@ module.exports = function (input, options) {
 
   if (options) {
     const mode = options.mode || 'hmac'
-    if (mode !== 'hmac') throw new Error('invalid mode')
+    if (mode === 'hmac') {
+      let key = options.key
+      if (!key) throw new Error('invalid key')
 
-    let key = options.key
-    if (!key) throw new Error('invalid key')
+      key = typeof key === 'string' ? hexToArray(key) : Array.prototype.slice.call(key)
+      return ArrayToHex(hmac(input, key))
+    } else if (mode === 'hkdf') {
+      let ikm = options.ikm
+      let salt = options.salt
+      let info = options.info
+      const len = options.len
+      ikm = typeof ikm === 'string' ? hexToArray(ikm) : Array.prototype.slice.call(ikm)
+      salt = typeof salt === 'string' ? hexToArray(salt) : Array.prototype.slice.call(salt)
+      info = typeof info === 'string' ? hexToArray(info) : Array.prototype.slice.call(info)
+      return ArrayToHex(hkdf(ikm, salt, info, len))
+    } else if (mode === 'pbkdf2') {
+      let password = options.password
+      let salt = options.salt
+      const c = options.c
+      const dkLen = options.dkLen
 
-    key = typeof key === 'string' ? hexToArray(key) : Array.prototype.slice.call(key)
-    return ArrayToHex(hmac(input, key))
+      password = typeof password === 'string' ? hexToArray(password) : Array.prototype.slice.call(password)
+      salt = typeof salt === 'string' ? hexToArray(salt) : Array.prototype.slice.call(salt)
+      return ArrayToHex(pbkdf2(password, salt, c, dkLen))
+    } else {
+      throw new Error('invalid mode')
+    }
   }
 
   return ArrayToHex(sm3(input))

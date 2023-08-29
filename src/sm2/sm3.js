@@ -152,6 +152,7 @@ for (let i = 0; i < blockLen; i++) {
   iPad[i] = 0x36
   oPad[i] = 0x5c
 }
+
 function hmac(input, key) {
   // 密钥填充
   if (key.length > blockLen) key = sm3(key)
@@ -163,8 +164,29 @@ function hmac(input, key) {
   const hash = sm3([...iPadKey, ...input])
   return sm3([...oPadKey, ...hash])
 }
+function hkdfExtract(ikm, salt) {
+  const prf = hmac(ikm, salt)
+  return prf
+}
+function hkdfExpand(prk, info, l) {
+  const hashLen = 32
+  let t = []
+  let okm = []
+  const N = Math.ceil(l / hashLen)
+  for (let i = 0; i < N; i++) {
+    t = hmac(prk, t.concat(info).concat(i + 1))
+    okm = okm.concat(t)
+  }
+  return okm.slice(0, l)
+}
+function hkdf(ikm, salt, info, len) {
+  const prk = hkdfExtract(ikm, salt)
+  const okm = hkdfExpand(prk, info, len)
+  return okm
+}
 
 module.exports = {
   sm3,
   hmac,
+  hkdf
 }

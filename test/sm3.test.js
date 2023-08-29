@@ -69,3 +69,23 @@ test('sm3: hmac', () => {
         key: bytes128,
     })).toBe('d374f8adb0e9d1f12de94c1406fe8b2d53f84129e033f0d269400de8e8e7ca1a')
 })
+test('sm3: hkdf', () => {
+    expect(sm3('abc', {
+        mode:'hkdf',
+        ikm: '0102030405060708',
+        salt: '0102030405060708',
+        info: '0102030405060708',
+        len: 16,
+    })).toBe('8def2a14158c99aec0e679409be53fa9')
+
+})
+test('sm3: pbdkf2', () => {
+    expect(sm3('abc', {
+        mode:'pbkdf2',
+        password: '368c1adba8b9d783',
+        salt: 'b4ab70c69fed2e09',
+        c: 10240,
+        dkLen: 32,
+    })).toBe('6f6eaf374befbe27346693e46eb29e2d542888ba2673a81bc32314c0b9eb0a91')
+
+})
