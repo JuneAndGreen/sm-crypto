@@ -1,11 +1,81 @@
 /* eslint-disable no-use-before-define */
 const {BigInteger} = require('jsbn')
-const {encodeDer, decodeDer} = require('./asn1')
+const ASN1 = require('../util/asn1')
+const Asn1Util = require('../util/util')
 const _ = require('./utils')
 const sm3 = require('./sm3').sm3
 
 const {G, curve, n} = _.generateEcparam()
 const C1C2C3 = 0
+
+
+/**
+ * 加密，并返回16进制的ASN1序列
+ */
+function encrypt(msg, publicKey) {
+  msg = typeof msg === 'string' ? _.hexToArray(_.utf8ToHex(msg)) : Array.prototype.slice.call(msg)
+  publicKey = _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
+
+  const keypair = _.generateKeyPairHex()
+  const k = new BigInteger(keypair.privateKey, 16) // 随机数 k
+
+  // c1 = k * G
+  let c1 = keypair.publicKey
+  if (c1.length > 128) c1 = c1.substr(c1.length - 128)
+
+  const pointC1 = _.getGlobalCurve().decodePointHex(keypair.publicKey)
+  const c1x = pointC1.getX().toBigInteger()
+  const c1y = pointC1.getY().toBigInteger()
+  const xbytes = Asn1Util.hexToBytes(c1x.toString(16))
+  const ybytes = Asn1Util.hexToBytes(c1y.toString(16))
+  const xAsn1 = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.INTEGER, false, xbytes)
+  const yAsn1 = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.INTEGER, false, ybytes)
+
+  // (x2, y2) = k * publicKey
+  const p = publicKey.multiply(k)
+  const x2 = _.hexToArray(_.leftPad(p.getX().toBigInteger().toRadix(16), 64))
+  const y2 = _.hexToArray(_.leftPad(p.getY().toBigInteger().toRadix(16), 64))
+
+  // c3 = hash(x2 || msg || y2)
+  const c3 = sm3([].concat(x2, msg, y2))
+  let c3Char = ''
+  for (let i = 0, len = c3.length; i < len; i++) {
+    c3Char += String.fromCharCode(c3[i])
+  }
+  const c3Asn1 = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.OCTETSTRING, false, c3Char, {bitStringContents: c3Char})
+
+  let ct = 1
+  let offset = 0
+  let t = [] // 256 位
+  const z = [].concat(x2, y2)
+  const nextT = () => {
+    // (1) Hai = hash(z || ct)
+    // (2) ct++
+    t = sm3([...z, ct >> 24 & 0x00ff, ct >> 16 & 0x00ff, ct >> 8 & 0x00ff, ct & 0x00ff])
+    ct++
+    offset = 0
+  }
+  nextT() // 先生成 Ha1
+
+  for (let i = 0, len = msg.length; i < len; i++) {
+    // t = Ha1 || Ha2 || Ha3 || Ha4
+    if (offset === t.length) nextT()
+
+    // c2 = msg ^ t
+    msg[i] ^= t[offset++] & 0xff
+  }
+
+  let c2 = ''
+  for (let i = 0, len = msg.length; i < len; i++) {
+    c2 += String.fromCharCode(msg[i])
+  }
+  const c2Asn1 = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.OCTETSTRING, false, c2, {bitStringContents: c2})
+
+  const der = ASN1.toDer(ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.SEQUENCE, true, [xAsn1, yAsn1, c3Asn1, c2Asn1]))
+  const result = der.toHex()
+
+  return result
+}
 
 /**
  * 加密
@@ -148,8 +218,12 @@ function doSignature(msg, privateKey, {
     s = dA.add(BigInteger.ONE).modInverse(n).multiply(k.subtract(r.multiply(dA))).mod(n)
   } while (s.equals(BigInteger.ZERO))
 
-  if (der) return encodeDer(r, s) // asn.1 der 编码
-
+  if (der) {
+    const asn1R = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.INTEGER, false, r)
+    const asn1S = ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.INTEGER, false, s)
+    const asn1Bytes = ASN1.toDer(ASN1.create(ASN1.Class.UNIVERSAL, ASN1.Type.SEQUENCE, true, [asn1R, asn1S]))
+    return Asn1Util.bytesToHex(asn1Bytes) // asn.1 der 编码
+  }
   return _.leftPad(r.toString(16), 64) + _.leftPad(s.toString(16), 64)
 }
 
@@ -167,7 +241,7 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
   let r; let
     s
   if (der) {
-    const decodeDerObj = decodeDer(signHex) // asn.1 der 解码
+    const decodeDerObj = ASN1.fromDer(Asn1Util.hexToBytes(signHex)) // asn.1 der 解码
     r = decodeDerObj.r
     s = decodeDerObj.s
   } else {
@@ -251,6 +325,7 @@ module.exports = {
   generateKeyPairHex: _.generateKeyPairHex,
   compressPublicKeyHex: _.compressPublicKeyHex,
   comparePublicKeyHex: _.comparePublicKeyHex,
+  encrypt,
   doEncrypt,
   doDecrypt,
   doSignature,
