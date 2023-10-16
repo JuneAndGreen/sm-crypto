@@ -168,3 +168,10 @@ test('sm2: sign data and verify sign', () => {
         expect(verifyResult6).toBe(true)
     }
 })
+
+test('sm2: getPublicKeyFromPrivateKey', () => {
+    for (let i = 0; i < 10; i++) {
+        const { privateKey, publicKey } = sm2.generateKeyPairHex()
+        expect(sm2.getPublicKeyFromPrivateKey(privateKey)).toEqual(publicKey)
+    }
+})

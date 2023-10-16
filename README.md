@@ -112,6 +112,14 @@ const sm2 = require('sm-crypto').sm2
 let point = sm2.getPoint() // 获取一个椭圆曲线点，可在sm2签名时传入
 ```
 
+### 根据私钥获取公钥
+
+```js
+const sm2 = require('sm-crypto).sm2
+
+let publicKey = sm2.getPublicKeyFromPrivateKey(privateKey)
+```
+
 ## sm3
 
 ```js

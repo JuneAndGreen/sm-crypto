@@ -255,6 +255,7 @@ module.exports = {
   doDecrypt,
   doSignature,
   doVerifySignature,
+  getPublicKeyFromPrivateKey,
   getPoint,
   verifyPublicKey: _.verifyPublicKey,
 }
