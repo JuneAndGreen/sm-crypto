@@ -166,6 +166,7 @@ let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba9876543
 * 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
 * java 实现（感谢 @antherd 提供）：[https://github.com/antherd/sm-crypto](https://github.com/antherd/sm-crypto)
 * dart 实现（感谢 @luckykellan 提供）：[https://github.com/luckykellan/dart_sm](https://github.com/luckykellan/dart_sm)
+* wasm 实现（感谢 @akitaSummer 提供）：[https://github.com/akitaSummer/gm-crypto-wasm](https://github.com/akitaSummer/gm-crypto-wasm)
 ## 协议
 
 MIT
