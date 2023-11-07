@@ -164,7 +164,6 @@ let decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba9876543
 ## 其他实现
 
 * 小程序移植版：[https://github.com/wechat-miniprogram/sm-crypto](https://github.com/wechat-miniprogram/sm-crypto)
-* ts 重构版：[https://github.com/Cubelrti/sm-crypto-v2](https://github.com/Cubelrti/sm-crypto-v2)
 
 ## 协议
 
