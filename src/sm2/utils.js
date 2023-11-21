@@ -102,10 +102,9 @@ function leftPad(input, num) {
  * 转成16进制串
  */
 function arrayToHex(arr) {
-  return arr.map(item => {
-    item = item.toString(16)
-    return item.length === 1 ? '0' + item : item
-  }).join('')
+  return arr.reduce((output, elem) =>
+        (output + ('0' + elem.toString(16)).slice(-2)),
+        '')
 }
 
 /**
