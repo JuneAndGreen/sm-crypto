@@ -278,11 +278,7 @@ function sm4(inArray, key, cryptFlag, {
 
   // 检查 key
   if (isString(key)) {
-    if (input === 'utf8') {
-      key = utf8ToHex(key)
-    } else {
-      key = hexToArray(key)
-    }
+    key = input === 'utf8' ? utf8ToHex(key) : hexToArray(key)
   }
 
   if (key.length !== (128 / 8)) {
