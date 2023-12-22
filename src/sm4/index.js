@@ -45,6 +45,28 @@ function hexToArray(str) {
 }
 
 /**
+ * UTF-8 串转 16 进制串
+ */
+function utf8ToHex(utf8String) {
+  // 使用TextEncoder进行UTF-8编码
+  const encoder = new TextEncoder()
+  const encodedData = encoder.encode(utf8String)
+
+  // 将字节数组转换为16进制字符串
+  let hexString = ''
+  for (const byte of encodedData) {
+    const hexByte = byte.toString(16).padStart(2, '0')
+    hexString += hexByte
+  }
+
+  return hexString
+}
+
+function isString (val) {
+  return typeof val === 'string'
+}
+
+/**
  * 字节数组转 16 进制串
  */
 function ArrayToHex(arr) {
@@ -238,12 +260,16 @@ function sms4KeyExt(key, roundKey, cryptFlag) {
   }
 }
 
+/**
+ * output: 'string' | 'array'
+ * input: 'hex' | 'utf8'
+ */
 function sm4(inArray, key, cryptFlag, {
-  padding = 'pkcs#7', mode, iv = [], output = 'string'
+  padding = 'pkcs#7', mode, iv = [], output = 'string', input = 'hex'
 } = {}) {
   if (mode === 'cbc') {
     // CBC 模式，默认走 ECB 模式
-    if (typeof iv === 'string') iv = hexToArray(iv)
+    if (isString(iv)) iv = hexToArray(iv)
     if (iv.length !== (128 / 8)) {
       // iv 不是 128 比特
       throw new Error('iv is invalid')
@@ -251,14 +277,21 @@ function sm4(inArray, key, cryptFlag, {
   }
 
   // 检查 key
-  if (typeof key === 'string') key = hexToArray(key)
+  if (isString(key)) {
+    if (input === 'utf8') {
+      key = utf8ToHex(key)
+    } else {
+      key = hexToArray(key)
+    }
+  }
+
   if (key.length !== (128 / 8)) {
     // key 不是 128 比特
     throw new Error('key is invalid')
   }
 
   // 检查输入
-  if (typeof inArray === 'string') {
+  if (isString(inArray)) {
     if (cryptFlag !== DECRYPT) {
       // 加密，输入为 utf8 串
       inArray = utf8ToArray(inArray)
