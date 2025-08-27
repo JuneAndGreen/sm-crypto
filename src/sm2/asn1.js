@@ -78,7 +78,18 @@ class DERInteger extends ASN1Object {
     return this.v
   }
 }
+class DEROctetString extends ASN1Object {
+  constructor(s) {
+    super()
 
+    this.t = '04' // octstr 标签说明
+    if (s) this.v = s.toLowerCase()
+  }
+
+  getValue() {
+    return this.v
+  }
+}
 class DERSequence extends ASN1Object {
   constructor(asn1Array) {
     super()
@@ -132,6 +143,14 @@ module.exports = {
     const derS = new DERInteger(s)
     const derSeq = new DERSequence([derR, derS])
 
+    return derSeq.getEncodedHex()
+  },
+  encodeEnc(x, y, hash, cipher) {
+    const derX = new DERInteger(x)
+    const derY = new DERInteger(y)
+    const derHash = new DEROctetString(hash)
+    const derCipher = new DEROctetString(cipher)
+    const derSeq = new DERSequence([derX, derY, derHash, derCipher])
     return derSeq.getEncodedHex()
   },
 

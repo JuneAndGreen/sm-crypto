@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 const {BigInteger} = require('jsbn')
-const {encodeDer, decodeDer} = require('./asn1')
+const {encodeDer, decodeDer, encodeEnc} = require('./asn1')
 const _ = require('./utils')
 const sm3 = require('./sm3').sm3
 
@@ -10,7 +10,7 @@ const C1C2C3 = 0
 /**
  * 加密
  */
-function doEncrypt(msg, publicKey, cipherMode = 1) {
+function doEncrypt(msg, publicKey, cipherMode = 1, asn1 = false) {
   msg = typeof msg === 'string' ? _.hexToArray(_.utf8ToHex(msg)) : Array.prototype.slice.call(msg)
   publicKey = _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
 
@@ -50,8 +50,12 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
     msg[i] ^= t[offset++] & 0xff
   }
   const c2 = _.arrayToHex(msg)
-
-  return cipherMode === C1C2C3 ? c1 + c2 + c3 : c1 + c3 + c2
+  if (asn1) {
+    const { Px, Py } = keypair
+    return cipherMode === C1C2C3 ? encodeEnc(Px, Py, c2, c3) : encodeEnc(Px, Py, c3, c2)
+  } else {
+    return cipherMode === C1C2C3 ? c1 + c2 + c3 : c1 + c3 + c2
+  }
 }
 
 /**
