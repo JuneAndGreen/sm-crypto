@@ -68,101 +68,92 @@ test('sm2: encrypt and decrypt data', () => {
 test('sm2: sign data and verify sign', () => {
   for (const publicKey of [unCompressedPublicKey, compressedPublicKey]) {
     // 纯签名 + 生成椭圆曲线点
-    const sigValueHex = sm2.doSignature(msgString, privateKey)
-    const verifyResult = sm2.doVerifySignature(msgString, sigValueHex, publicKey)
+    const sigValueHex = sm2.doSignature(msgString, privateKey, {
+      hash: false,
+    })
+    const verifyResult = sm2.doVerifySignature(msgString, sigValueHex, publicKey, {
+      hash: false,
+    })
     expect(verifyResult).toBe(true)
 
     // 纯签名
     const sigValueHex2 = sm2.doSignature(msgString, privateKey, {
+      hash: false,
       pointPool: [sm2.getPoint(), sm2.getPoint(), sm2.getPoint(), sm2.getPoint()],
     })
-    const verifyResult2 = sm2.doVerifySignature(msgString, sigValueHex2, publicKey)
+    const verifyResult2 = sm2.doVerifySignature(msgString, sigValueHex2, publicKey, {
+      hash: false,
+    })
     expect(verifyResult2).toBe(true)
 
     // 纯签名 + 生成椭圆曲线点 + der编解码
     const sigValueHex3 = sm2.doSignature(msgString, privateKey, {
       der: true,
+      hash: false,
     })
     const verifyResult3 = sm2.doVerifySignature(msgString, sigValueHex3, publicKey, {
       der: true,
+      hash: false,
     })
     expect(verifyResult3).toBe(true)
 
     // 纯签名 + 生成椭圆曲线点 + sm3杂凑
-    let sigValueHex4 = sm2.doSignature(msgString, privateKey, {
-      hash: true,
-    })
-    let verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey, {
+    let sigValueHex4 = sm2.doSignature(msgString, privateKey)
+    let verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey)
+    expect(verifyResult4).toBe(true)
+    verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey, {
       hash: true,
     })
     expect(verifyResult4).toBe(true)
 
     for (let i = 0; i < 100; i++) {
-      sigValueHex4 = sm2.doSignature(msgString, privateKey, {
-        hash: true,
-      })
-      verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey, {
-        hash: true,
-      })
+      sigValueHex4 = sm2.doSignature(msgString, privateKey)
+      verifyResult4 = sm2.doVerifySignature(msgString, sigValueHex4, publicKey)
       expect(verifyResult4).toBe(true)
     }
 
     // 纯签名 + 生成椭圆曲线点 + sm3杂凑（不做公钥推导）
     const sigValueHex5 = sm2.doSignature(msgString, privateKey, {
-      hash: true,
       publicKey,
     })
     const verifyResult5 = sm2.doVerifySignature(msgString, sigValueHex5, publicKey, {
-      hash: true,
       publicKey,
     })
     expect(verifyResult5).toBe(true)
 
     // 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加 userId
     let sigValueHex6 = sm2.doSignature(msgString, privateKey, {
-      hash: true,
       publicKey,
       userId: 'testUserId',
     })
     let verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
       userId: 'testUserId',
     })
     expect(verifyResult6).toBe(true)
     verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
       userId: 'wrongTestUserId',
     })
     expect(verifyResult6).toBe(false)
     sigValueHex6 = sm2.doSignature(msgString, privateKey, {
-      hash: true,
       publicKey,
       userId: '',
     })
     verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
       userId: '',
     })
     expect(verifyResult6).toBe(true)
-    verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
-    })
+    verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey)
     expect(verifyResult6).toBe(false)
     sigValueHex6 = sm2.doSignature(msgString, privateKey, {
-      hash: true,
       publicKey,
     })
-    verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
-    })
+    verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey)
     expect(verifyResult6).toBe(true)
     verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
       userId: '',
     })
     expect(verifyResult6).toBe(false)
     verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-      hash: true,
       userId: '1234567812345678'
     })
     expect(verifyResult6).toBe(true)
