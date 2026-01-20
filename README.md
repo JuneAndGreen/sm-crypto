@@ -51,13 +51,19 @@ decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode, {output: 'array
 ### 签名验签
 
 > ps：理论上来说，只做纯签名是最快的。
+> 
+> ps：`hash` 参数默认为 `true`，即默认会做 sm3 杂凑。如需纯签名（不做杂凑），请显式传入 `hash: false`。
 
 ```js
 const sm2 = require('sm-crypto').sm2
 
-// 纯签名 + 生成椭圆曲线点
-let sigValueHex = sm2.doSignature(msg, privateKey) // 签名
-let verifyResult = sm2.doVerifySignature(msg, sigValueHex, publicKey) // 验签结果
+// 纯签名 + 生成椭圆曲线点（不做sm3杂凑）
+let sigValueHex = sm2.doSignature(msg, privateKey, {
+    hash: false,
+}) // 签名
+let verifyResult = sm2.doVerifySignature(msg, sigValueHex, publicKey, {
+    hash: false,
+}) // 验签结果
 
 // 纯签名
 let sigValueHex2 = sm2.doSignature(msg, privateKey, {
@@ -73,33 +79,23 @@ let verifyResult3 = sm2.doVerifySignature(msg, sigValueHex3, publicKey, {
     der: true,
 }) // 验签结果
 
-// 纯签名 + 生成椭圆曲线点 + sm3杂凑
-let sigValueHex4 = sm2.doSignature(msg, privateKey, {
-    hash: true,
-}) // 签名
-let verifyResult4 = sm2.doVerifySignature(msg, sigValueHex4, publicKey, {
-    hash: true,
-}) // 验签结果
+// sm3杂凑（默认行为）
+let sigValueHex4 = sm2.doSignature(msg, privateKey)
+let verifyResult4 = sm2.doVerifySignature(msg, sigValueHex4, publicKey) // 验签结果
 
-// 纯签名 + 生成椭圆曲线点 + sm3杂凑（不做公钥推导）
+// sm3杂凑（不做公钥推导）
 let sigValueHex5 = sm2.doSignature(msg, privateKey, {
-    hash: true,
-    publicKey, // 传入公钥的话，可以去掉sm3杂凑中推导公钥的过程，速度会比纯签名 + 生成椭圆曲线点 + sm3杂凑快
+    publicKey, // 传入公钥的话，可以去掉sm3杂凑中推导公钥的过程，速度更快
 })
-let verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey, {
-    hash: true,
-    publicKey,
-})
+let verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey)
 
-// 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加 userId（长度小于 8192）
+// sm3杂凑 + 不做公钥推导 + 添加 userId（长度小于 8192）
 // 默认 userId 值为 1234567812345678
 let sigValueHex6 = sm2.doSignature(msgString, privateKey, {
-    hash: true,
     publicKey,
     userId: 'testUserId',
 })
 let verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
-    hash: true,
     userId: 'testUserId',
 })
 ```

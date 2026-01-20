@@ -116,7 +116,7 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1, {
  * 签名
  */
 function doSignature(msg, privateKey, {
-  pointPool, der, hash, publicKey, userId
+  pointPool, der, hash = true, publicKey, userId
 } = {}) {
   let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
 
@@ -160,7 +160,7 @@ function doSignature(msg, privateKey, {
 /**
  * 验签
  */
-function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
+function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} = {}) {
   let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
 
   if (hash) {
