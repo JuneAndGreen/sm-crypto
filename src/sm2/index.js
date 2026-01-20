@@ -73,6 +73,10 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1, {
   const msg = _.hexToArray(c2)
   const c1 = _.getGlobalCurve().decodePointHex('04' + encryptData.substr(0, 128))
 
+  if (!c1 || !_.verifyPublicKey('04' + encryptData.substr(0, 128))) {
+    return output === 'array' ? [] : ''
+  }
+
   const p = c1.multiply(privateKey)
   const x2 = _.hexToArray(_.leftPad(p.getX().toBigInteger().toRadix(16), 64))
   const y2 = _.hexToArray(_.leftPad(p.getY().toBigInteger().toRadix(16), 64))
@@ -164,8 +168,7 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
     hashHex = getHash(hashHex, publicKey, userId)
   }
 
-  let r; let
-    s
+  let r; let s
   if (der) {
     const decodeDerObj = decodeDer(signHex) // asn.1 der 解码
     r = decodeDerObj.r
@@ -175,7 +178,12 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash, userId} = {}) {
     s = new BigInteger(signHex.substring(64), 16)
   }
 
+  const nSubOne = n.subtract(BigInteger.ONE)
+  if (r.compareTo(BigInteger.ONE) < 0 || r.compareTo(nSubOne) > 0) return false
+  if (s.compareTo(BigInteger.ONE) < 0 || s.compareTo(nSubOne) > 0) return false
+
   const PA = curve.decodePointHex(publicKey)
+  if (!PA || !_.verifyPublicKey(publicKey)) return false
   const e = new BigInteger(hashHex, 16)
 
   // t = (r + s) mod n
