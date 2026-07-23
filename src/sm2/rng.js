@@ -68,6 +68,7 @@ if (rngPool == null) {
   } else {
     const nodeCrypto = (typeof require === 'function') ? require('crypto') : null
     if (nodeCrypto) nodeCrypto.getRandomValues(ua)
+    else if (globalThis.crypto) globalThis.crypto.getRandomValues(ua)
     else throw new Error('当前环境不支持 crypto.getRandomValues！')
     for (t = 0; t < 32; ++t) rngPool[rngPptr++] = ua[t]
   }
