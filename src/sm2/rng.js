@@ -67,7 +67,8 @@ if (rngPool == null) {
     for (t = 0; t < 32; ++t) rngPool[rngPptr++] = ua[t]
   } else {
     const nodeCrypto = (typeof require === 'function') ? require('crypto') : null
-    nodeCrypto.getRandomValues(ua)
+    if (nodeCrypto) nodeCrypto.getRandomValues(ua)
+    else throw new Error('当前环境不支持 crypto.getRandomValues！')
     for (t = 0; t < 32; ++t) rngPool[rngPptr++] = ua[t]
   }
 
@@ -98,11 +99,5 @@ class SecureRandom {
 }
 
 module.exports = {
-  constructor() {
-    if (!globalThis.crypto || !globalThis.crypto.getRandomValues) {
-      throw new Error('当前环境不支持 globalThis.crypto.getRandomValues！')
-    }
-  },
-
   SecureRandom,
 }
