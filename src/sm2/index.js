@@ -161,8 +161,9 @@ function doSignature(msg, privateKey, {
  * 验签
  */
 function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} = {}) {
-  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
+  if (!_.verifyPublicKey(publicKey)) return false
 
+  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
   if (hash) {
     // sm3杂凑
     hashHex = getHash(hashHex, publicKey, userId)
@@ -183,7 +184,7 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} =
   if (s.compareTo(BigInteger.ONE) < 0 || s.compareTo(nSubOne) > 0) return false
 
   const PA = curve.decodePointHex(publicKey)
-  if (!PA || !_.verifyPublicKey(publicKey)) return false
+  if (!PA) return false
   const e = new BigInteger(hashHex, 16)
 
   // t = (r + s) mod n

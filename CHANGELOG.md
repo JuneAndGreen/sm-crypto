@@ -1,3 +1,7 @@
+## 0.5.4
+
+* 修复 sm2 在调用 doVerifySignature 时传入不可解析公钥会抛出异常的问题
+
 ## 0.5.0
 
 * sm2 随机数在 nodejs 环境改用 crypto 生成

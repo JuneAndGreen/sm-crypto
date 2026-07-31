@@ -158,6 +158,11 @@ test('sm2: sign data and verify sign', () => {
     })
     expect(verifyResult6).toBe(true)
   }
+
+  // 不合法的公钥
+  const sigValueHex = sm2.doSignature('msg', sm2.generateKeyPairHex().privateKey)
+  const verifyResult = sm2.doVerifySignature('msg', sigValueHex, '')
+  expect(verifyResult).toBe(false)
 })
 
 test('sm2: getPublicKeyFromPrivateKey', () => {
