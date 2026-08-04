@@ -94,33 +94,72 @@ class DERSequence extends ASN1Object {
 }
 
 /**
- * 获取 l 占用字节数
+ * 解析 TLV 中的 length 字段
+ * 严格校验 DER 规范：
+ * - 短格式（首字节 < 0x80）：长度直接由首字节表示
+ * - 长格式（首字节 >= 0x80）：低 7 位为后续长度字节数
+ *   - 长度字节数必须最小（不能有前导 0）
+ *   - 长度值 < 128 必须用短格式
+ * 返回 { len, lenOfL }，len 为 value 的字节数，lenOfL 为 length 字段占用的字节数
+ * 校验失败抛出 Error
  */
-function getLenOfL(str, start) {
-  if (+str[start + 2] < 8) return 1 // l 以0开头，则表示短格式，只占一个字节
-  return +str.substr(start + 2, 2) & 0x7f + 1 // 长格式，取第一个字节后7位作为长度真正占用字节数，再加上本身
+function parseLength(str, start) {
+  if (start + 2 > str.length) throw new Error('invalid DER: length field truncated')
+  const first = parseInt(str.substring(start, start + 2), 16)
+  if (first < 0x80) {
+    // 短格式
+    return {len: first, lenOfL: 1}
+  }
+  // 长格式
+  const numBytes = first & 0x7f
+  if (numBytes === 0) throw new Error('invalid DER: indefinite length not allowed')
+  if (numBytes > 4) throw new Error('invalid DER: length too large')
+  if (start + 2 + numBytes * 2 > str.length) throw new Error('invalid DER: length field truncated')
+  const lenHex = str.substring(start + 2, start + 2 + numBytes * 2)
+  const len = parseInt(lenHex, 16)
+  // 长度值 < 128 必须用短格式
+  if (len < 0x80) throw new Error('invalid DER: length not minimally encoded (should use short form)')
+  // 长度字节不能有前导 0
+  if (lenHex.substring(0, 2) === '00') throw new Error('invalid DER: length has leading zero byte')
+  return {len, lenOfL: 1 + numBytes}
 }
 
 /**
- * 获取 l
+ * 解析一个 TLV，返回 { tag, valueHex, nextStart }
+ * 严格校验 DER 规范
  */
-function getL(str, start) {
-  // 获取 l
-  const len = getLenOfL(str, start)
-  const l = str.substr(start + 2, len * 2)
-
-  if (!l) return -1
-  const bigint = +l[0] < 8 ? new BigInteger(l, 16) : new BigInteger(l.substr(2), 16)
-
-  return bigint.intValue()
+function parseTLV(str, start) {
+  if (start + 2 > str.length) throw new Error('invalid DER: tag field truncated')
+  const tag = str.substring(start, start + 2)
+  const {len, lenOfL} = parseLength(str, start + 2)
+  const valueStart = start + 2 + lenOfL * 2
+  const valueEnd = valueStart + len * 2
+  if (valueEnd > str.length) throw new Error('invalid DER: value truncated')
+  return {
+    tag,
+    valueHex: str.substring(valueStart, valueEnd),
+    nextStart: valueEnd,
+  }
 }
 
 /**
- * 获取 v 的位置
+ * 校验 DER INTEGER 的 value 是否为最小编码
+ * - 不能为空
+ * - 若首字节为 0x00，则次字节的最高位必须为 1（否则前导 0 是多余的）
+ * - 不能是负数（首字节最高位不能为 1，因为签名中的 r/s 是正整数）
  */
-function getStartOfV(str, start) {
-  const len = getLenOfL(str, start)
-  return start + (len + 1) * 2
+function assertMinimalInteger(valueHex) {
+  if (valueHex.length === 0) throw new Error('invalid DER: INTEGER is empty')
+  const firstByte = parseInt(valueHex.substring(0, 2), 16)
+  if (firstByte & 0x80) throw new Error('invalid DER: INTEGER is negative')
+  if (firstByte === 0x00) {
+    if (valueHex.length === 2) {
+      // 只有一个字节 0x00，表示 0，合法（但对签名而言 r/s 不能为 0，由上层范围检查处理）
+      return
+    }
+    const secondByte = parseInt(valueHex.substring(2, 4), 16)
+    if (!(secondByte & 0x80)) throw new Error('invalid DER: INTEGER has non-minimal leading zero')
+  }
 }
 
 module.exports = {
@@ -137,24 +176,38 @@ module.exports = {
 
   /**
    * 解析 ASN.1 der，针对 sm2 验签
+   * 严格校验规范 DER 编码，拒绝任何非规范编码（例如：
+   * INTEGER 前导 00 填充、外层 SEQUENCE 长度与实际不符、错误的 tag 等），
+   * 以避免签名可延展性（signature malleability）问题。
    */
   decodeDer(input) {
-    // 结构：
-    // input = | tSeq | lSeq | vSeq |
-    // vSeq = | tR | lR | vR | tS | lS | vS |
-    const start = getStartOfV(input, 0)
+    if (typeof input !== 'string' || input.length % 2 !== 0) {
+      throw new Error('invalid DER: input must be a hex string of even length')
+    }
 
-    const vIndexR = getStartOfV(input, start)
-    const lR = getL(input, start)
-    const vR = input.substr(vIndexR, lR * 2)
+    // 外层 SEQUENCE
+    if (input.substring(0, 2) !== '30') throw new Error('invalid DER: expected SEQUENCE (0x30)')
+    const seqLenInfo = parseLength(input, 2)
+    const seqValueOffset = 2 + seqLenInfo.lenOfL * 2
+    // 外层 SEQUENCE 长度必须与剩余输入完全一致（禁止尾部多余字节 / 长度不一致）
+    if (seqValueOffset + seqLenInfo.len * 2 !== input.length) {
+      throw new Error('invalid DER: SEQUENCE length does not match input length')
+    }
 
-    const nextStart = vIndexR + vR.length
-    const vIndexS = getStartOfV(input, nextStart)
-    const lS = getL(input, nextStart)
-    const vS = input.substr(vIndexS, lS * 2)
+    // 内部第一个 INTEGER: R
+    const rParsed = parseTLV(input, seqValueOffset)
+    if (rParsed.tag !== '02') throw new Error('invalid DER: expected INTEGER (0x02) for R')
+    assertMinimalInteger(rParsed.valueHex)
 
-    const r = new BigInteger(vR, 16)
-    const s = new BigInteger(vS, 16)
+    const sParsed = parseTLV(input, rParsed.nextStart)
+    if (sParsed.tag !== '02') throw new Error('invalid DER: expected INTEGER (0x02) for S')
+    assertMinimalInteger(sParsed.valueHex)
+
+    // S 必须刚好到 SEQUENCE 末尾
+    if (sParsed.nextStart !== input.length) throw new Error('invalid DER: trailing bytes inside SEQUENCE')
+
+    const r = new BigInteger(rParsed.valueHex, 16)
+    const s = new BigInteger(sParsed.valueHex, 16)
 
     return {r, s}
   }

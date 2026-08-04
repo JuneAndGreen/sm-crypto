@@ -171,9 +171,14 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} =
 
   let r; let s
   if (der) {
-    const decodeDerObj = decodeDer(signHex) // asn.1 der 解码
-    r = decodeDerObj.r
-    s = decodeDerObj.s
+    try {
+      const decodeDerObj = decodeDer(signHex) // asn.1 der 解码（严格校验规范编码）
+      r = decodeDerObj.r
+      s = decodeDerObj.s
+    } catch (err) {
+      // 非规范 DER 编码（例如 R/S 前导 00 填充、tag 错误、SEQUENCE 长度不一致等）
+      return false
+    }
   } else {
     r = new BigInteger(signHex.substring(0, 64), 16)
     s = new BigInteger(signHex.substring(64), 16)
