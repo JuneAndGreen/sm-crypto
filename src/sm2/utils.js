@@ -101,12 +101,21 @@ function leftPad(input, num) {
 
 /**
  * 转成16进制串
+ *
+ * 注意：不能直接使用 arr.map(...).join('')。
+ * 当 arr 是 Uint8Array 等 TypedArray 时，其 map 会返回同类 TypedArray，
+ * 回调返回的字符串会被强制转成数字（"80"->80, "ff"->NaN->0），
+ * 再 join('') 得到十进制串或丢失字节，导致签名/验签结果与 Array 输入不一致。
+ * 这里用显式循环 + 位与 0xff，兼容 Array / Uint8Array / Buffer 等所有类数组输入。
  */
 function arrayToHex(arr) {
-  return arr.map(item => {
-    item = item.toString(16)
-    return item.length === 1 ? '0' + item : item
-  }).join('')
+  const hexChars = []
+  for (let i = 0; i < arr.length; i++) {
+    const byte = arr[i] & 0xff
+    hexChars.push((byte >>> 4).toString(16))
+    hexChars.push((byte & 0x0f).toString(16))
+  }
+  return hexChars.join('')
 }
 
 /**

@@ -120,7 +120,9 @@ function doDecrypt(encryptData, privateKey, cipherMode = 1, {
 function doSignature(msg, privateKey, {
   pointPool, der, hash = true, publicKey, userId
 } = {}) {
-  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
+  // 统一二进制入参：Uint8Array / Buffer / 普通数组都归一化为普通 Array，
+  // 避免 TypedArray 在 arrayToHex 中被误处理导致签名不可互操作
+  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(Array.prototype.slice.call(msg))
 
   if (hash) {
     // sm3杂凑
@@ -165,7 +167,9 @@ function doSignature(msg, privateKey, {
 function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} = {}) {
   if (!_.verifyPublicKey(publicKey)) return false
 
-  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(msg)
+  // 统一二进制入参：Uint8Array / Buffer / 普通数组都归一化为普通 Array，
+  // 避免 TypedArray 在 arrayToHex 中被误处理导致签名不可互操作
+  let hashHex = typeof msg === 'string' ? _.utf8ToHex(msg) : _.arrayToHex(Array.prototype.slice.call(msg))
   if (hash) {
     // sm3杂凑
     hashHex = getHash(hashHex, publicKey, userId)

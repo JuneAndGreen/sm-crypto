@@ -337,3 +337,43 @@ test('sm2: reject infinity-sentinel public keys (regression for 00-prefix bypass
   // hash: false 路径同样必须安全
   expect(sm2.doVerifySignature(msgString, sigValueHex, '00', {hash: false})).toBe(false)
 })
+
+// 针对 Uint8Array 二进制入参：Uint8Array.prototype.map 会返回同类 TypedArray，
+// 且会把回调返回的字符串强制转成数字（"80"->80、"ff"->NaN->0），
+// 旧实现的 arrayToHex 直接对 msg.map 会得到十进制串或丢字节，
+// 造成 sign(Uint8Array) 与 verify(Array) 结果不一致，签名与其它标准实现不互操作。
+test('sm2: Uint8Array and Array with same bytes must produce mutually verifiable signatures', () => {
+  const typed = new Uint8Array([0x80, 0x01, 0x69, 0x24, 0xff, 0x00, 0x7f])
+  const array = Array.from(typed)
+
+  const combos = [
+    {hash: true, der: false},
+    {hash: false, der: false},
+    {hash: true, der: true},
+    {hash: false, der: true},
+  ]
+
+  for (const {hash, der} of combos) {
+    const opts = {hash, der, publicKey: unCompressedPublicKey, userId: '1234567812345678'}
+
+    // 1. 用 Uint8Array 签名，Uint8Array 与 Array 都能验证通过
+    const sigFromTyped = sm2.doSignature(typed, privateKey, opts)
+    expect(sm2.doVerifySignature(typed, sigFromTyped, unCompressedPublicKey, opts)).toBe(true)
+    expect(sm2.doVerifySignature(array, sigFromTyped, unCompressedPublicKey, opts)).toBe(true)
+
+    // 2. 用 Array 签名，Uint8Array 与 Array 都能验证通过
+    const sigFromArray = sm2.doSignature(array, privateKey, opts)
+    expect(sm2.doVerifySignature(typed, sigFromArray, unCompressedPublicKey, opts)).toBe(true)
+    expect(sm2.doVerifySignature(array, sigFromArray, unCompressedPublicKey, opts)).toBe(true)
+
+    // 3. Node Buffer 也是常见二进制入参，等价字节应同样可互验
+    if (typeof Buffer !== 'undefined') {
+      const buf = Buffer.from(array)
+      const sigFromBuf = sm2.doSignature(buf, privateKey, opts)
+      expect(sm2.doVerifySignature(buf, sigFromBuf, unCompressedPublicKey, opts)).toBe(true)
+      expect(sm2.doVerifySignature(array, sigFromBuf, unCompressedPublicKey, opts)).toBe(true)
+      expect(sm2.doVerifySignature(typed, sigFromBuf, unCompressedPublicKey, opts)).toBe(true)
+      expect(sm2.doVerifySignature(array, sigFromTyped, unCompressedPublicKey, opts)).toBe(true)
+    }
+  }
+})

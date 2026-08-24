@@ -2,7 +2,8 @@
 
 * 修复 sm2 传入以 `00` 前缀开头的公钥（无穷远点 sentinel）时，doVerifySignature/doEncrypt 抛出未捕获 TypeError 导致进程崩溃的问题
 * 修复 sm2.doEncrypt 从未对公钥做校验，传入空串或未识别前缀（如 `05`、`ff`）等畸形公钥会抛出未捕获 TypeError 导致进程崩溃的问题；现改为在入口先做公钥合法性校验，非法则抛出可捕获的 `Error('Invalid public key')`
-* sm2 的 decodePointHex 对各前缀强制校验编码长度，长度非法统一返回 null
+* sm2 的 `decodePointHex` 对各前缀强制校验编码长度，长度非法统一返回 `null`
+* 修复 sm2.doSignature/doVerifySignature 传入 `Uint8Array` 与内容等价的普通 `Array` 得到的签名不能互相验证的问题：`arrayToHex` 改用显式循环，对 `Array`/`Uint8Array`/`Buffer` 等所有类数组一致处理；doSignature/doVerifySignature 入参统一归一化
 
 ## 0.5.6
 
