@@ -1,6 +1,10 @@
+## 0.5.7
+
+* 修复 sm2 传入以 `00` 前缀开头的公钥（无穷远点 sentinel）时，doVerifySignature/doEncrypt 抛出未捕获 TypeError 导致进程崩溃的问题
+
 ## 0.5.6
 
-* 修复在非 node 平台被判断成使用 node crypto 引发的报错
+* 修复 sm2 在非 node 平台被判断成使用 node crypto 引发的报错
 
 ## 0.5.5
 

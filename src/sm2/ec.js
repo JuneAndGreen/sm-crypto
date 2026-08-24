@@ -290,12 +290,17 @@ class ECCurveFp {
    * 解析 16 进制串为椭圆曲线点
    */
   decodePointHex(s) {
+    if (typeof s !== 'string' || s.length < 2 || s.length % 2 !== 0) return null
     switch (parseInt(s.substr(0, 2), 16)) {
       // 第一个字节
       case 0:
+        // 无穷远点的编码只应是 "00"，其它长度视为非法
+        if (s.length !== 2) return null
         return this.infinity
       case 2:
       case 3:
+        // 压缩公钥：1 字节前缀 + 32 字节 x 坐标
+        if (s.length !== 2 + 64) return null
         // 压缩
         const x = this.fromBigInteger(new BigInteger(s.substr(2), 16))
         // 对 p ≡ 3 (mod4)，即存在正整数 u，使得 p = 4u + 3
@@ -314,6 +319,8 @@ class ECCurveFp {
       case 4:
       case 6:
       case 7:
+        // 未压缩公钥：1 字节前缀 + 32 字节 x + 32 字节 y
+        if (s.length !== 2 + 128) return null
         const len = (s.length - 2) / 2
         const xHex = s.substr(2, len)
         const yHex = s.substr(len + 2, len)

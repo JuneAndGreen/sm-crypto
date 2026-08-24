@@ -11,6 +11,8 @@ const C1C2C3 = 0
  * 加密
  */
 function doEncrypt(msg, publicKey, cipherMode = 1) {
+  if (!_.verifyPublicKey(publicKey)) throw new Error('Invalid public key')
+
   msg = typeof msg === 'string' ? _.hexToArray(_.utf8ToHex(msg)) : Array.prototype.slice.call(msg)
   publicKey = _.getGlobalCurve().decodePointHex(publicKey) // 先将公钥转成点
 

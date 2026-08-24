@@ -292,3 +292,45 @@ test('sm2: der verify must reject non-canonical encodings (signature malleabilit
   expect(sm2.doVerifySignature(msgString, 'zz', unCompressedPublicKey, {der: true, hash: false})).toBe(false)
   expect(sm2.doVerifySignature(msgString, '30', unCompressedPublicKey, {der: true, hash: false})).toBe(false)
 })
+
+// 针对无穷远点 sentinel 绕过：以 0x00 开头的公钥会让 decodePointHex 返回 curve.infinity
+// （一个 x/y 均为 null 的 truthy 对象），旧实现只做 !point 判空，随后 point.getX() 抛 TypeError，
+// 反过来把 0.5.4 "验签不再抛异常" 的承诺变成了单包 DoS。
+// 参考：GHSA-xj7m-r97m-9h7w 的绕过报告。
+test('sm2: reject infinity-sentinel public keys (regression for 00-prefix bypass)', () => {
+  const sigValueHex = sm2.doSignature(msgString, privateKey)
+
+  const evilPublicKeys = [
+    '0',                          // 单字符
+    '00',                         // 纯 sentinel
+    '00' + '11'.repeat(64),       // 00 前缀 + 类合法长度的载荷
+    '00' + 'a'.repeat(128),       // 00 前缀 + 未压缩长度的载荷
+    '01' + '11'.repeat(64),       // 未识别前缀
+    '',                           // 空串
+  ]
+
+  for (const pk of evilPublicKeys) {
+    // 验签必须返回 false 而不抛异常
+    expect(() => {
+      const r = sm2.doVerifySignature(msgString, sigValueHex, pk)
+      expect(r).toBe(false)
+    }).not.toThrow()
+
+    // verifyPublicKey 也必须返回 false 而不抛异常
+    expect(() => {
+      expect(sm2.verifyPublicKey(pk)).toBe(false)
+    }).not.toThrow()
+
+    // comparePublicKeyHex 与合法公钥比较必须返回 false 而不抛异常
+    expect(() => {
+      expect(sm2.comparePublicKeyHex(pk, unCompressedPublicKey)).toBe(false)
+      expect(sm2.comparePublicKeyHex(unCompressedPublicKey, pk)).toBe(false)
+    }).not.toThrow()
+
+    // doEncrypt 面对畸形公钥应抛出可捕获的 Error，不再是 TypeError 让进程崩溃
+    expect(() => sm2.doEncrypt(msgString, pk, cipherMode)).toThrow(/Invalid public key/)
+  }
+
+  // hash: false 路径同样必须安全
+  expect(sm2.doVerifySignature(msgString, sigValueHex, '00', {hash: false})).toBe(false)
+})

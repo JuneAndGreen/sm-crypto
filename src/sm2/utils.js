@@ -157,8 +157,16 @@ function hexToArray(hexStr) {
  * 验证公钥是否为椭圆曲线上的点
  */
 function verifyPublicKey(publicKey) {
-  const point = curve.decodePointHex(publicKey)
-  if (!point) return false
+  if (typeof publicKey !== 'string' || !publicKey) return false
+
+  let point
+  try {
+    point = curve.decodePointHex(publicKey)
+  } catch (e) {
+    return false
+  }
+  // 无穷远点（decodePointHex 对 00 前缀会返回 curve.infinity，其 x/y 为 null）不是合法公钥
+  if (!point || point.isInfinity()) return false
 
   const x = point.getX()
   const y = point.getY()
@@ -171,11 +179,10 @@ function verifyPublicKey(publicKey) {
  * 验证公钥是否等价，等价返回true
  */
 function comparePublicKeyHex(publicKey1, publicKey2) {
-  const point1 = curve.decodePointHex(publicKey1)
-  if (!point1) return false
+  if (!verifyPublicKey(publicKey1) || !verifyPublicKey(publicKey2)) return false
 
+  const point1 = curve.decodePointHex(publicKey1)
   const point2 = curve.decodePointHex(publicKey2)
-  if (!point2) return false
 
   return point1.equals(point2)
 }
