@@ -305,7 +305,10 @@ test('sm2: reject infinity-sentinel public keys (regression for 00-prefix bypass
     '00',                         // 纯 sentinel
     '00' + '11'.repeat(64),       // 00 前缀 + 类合法长度的载荷
     '00' + 'a'.repeat(128),       // 00 前缀 + 未压缩长度的载荷
+    '00' + '22'.repeat(32),       // 00 前缀 + 32 字节载荷（doEncrypt DoS 报告用例）
     '01' + '11'.repeat(64),       // 未识别前缀
+    '05' + '22'.repeat(32),       // 未识别前缀 05（doEncrypt DoS 报告用例）
+    'ff' + '22'.repeat(32),       // 未识别前缀 ff（doEncrypt DoS 报告用例）
     '',                           // 空串
   ]
 
