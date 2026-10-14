@@ -46,6 +46,8 @@ encryptData = sm2.doEncrypt(msgArray, publicKey, cipherMode) // 加密结果，�
 decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode, {output: 'array'}) // 解密结果，输出数组
 ```
 
+> ps：生成的密文会去掉 `04` 前缀，如遇到其他工具解密需要，则需要自己补充前缀。
+>
 > ps：密文会在解密时自动补充 `04`，如遇到其他工具补充的 `04` 需手动去除再传入。
 
 ### 签名验签
