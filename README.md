@@ -8,6 +8,18 @@
 npm install --save sm-crypto
 ```
 
+## 安全公告
+
+`sm-crypto < 0.5.0` 在 Node.js、小程序、Web Worker 等没有 `window.crypto.getRandomValues` 的环境中，sm2 的随机数仅由时钟生成，私钥、签名随机数和加密临时密钥均可被预测（[GHSA-vh45-f885-3848](https://github.com/advisories/GHSA-vh45-f885-3848) / CVE-2026-73567）。
+
+* 请升级到 `>= 0.5.0`，升级无法挽回历史暴露
+* 在旧版本中生成过、或用于签名过的 sm2 密钥，请轮换或吊销
+* 在旧版本中使用 `doEncrypt` 加密的数据，应视为已泄露
+
+## 运行环境
+
+sm2 依赖密码学安全的随机源 `crypto.getRandomValues`（浏览器使用 `window.crypto`，Node.js 使用 `crypto` 模块，其他环境使用 `globalThis.crypto`）。环境不支持时，加载 sm2 模块会直接抛出异常，不会回退到不安全的实现。Node.js 需要 17.4 及以上版本。
+
 ## sm2
 
 ### 获取密钥对
@@ -24,10 +36,16 @@ privateKey = keypair.privateKey // 私钥
 const compressedPublicKey = sm2.compressPublicKeyHex(publicKey) // compressedPublicKey 和 publicKey 等价
 sm2.comparePublicKeyHex(publicKey, compressedPublicKey) // 判断公钥是否等价
 
-// 自定义随机数，参数会直接透传给 jsbn 库的 BigInteger 构造器
-// 注意：开发者使用自定义随机数，需要自行确保传入的随机数符合密码学安全
-let keypair2 = sm2.generateKeyPairHex('123123123123123')
-let keypair3 = sm2.generateKeyPairHex(256, SecureRandom)
+// 自定义随机数：第一个参数为位数，第二个参数为实现了 nextBytes(array) 的随机数生成器，会透传给 jsbn 的 BigInteger(bits, rng)
+// 注意：rng 必须基于密码学安全的随机源（CSPRNG），不要使用 jsbn 自带的 SecureRandom（存在同样的缺陷）
+const crypto = require('crypto') // 浏览器中可改用 window.crypto.getRandomValues
+const rng = {
+  nextBytes(array) {
+    const bytes = crypto.randomBytes(array.length)
+    for (let i = 0; i < array.length; i++) array[i] = bytes[i]
+  },
+}
+let keypair2 = sm2.generateKeyPairHex(256, rng)
 
 let verifyResult = sm2.verifyPublicKey(publicKey) // 验证公钥
 verifyResult = sm2.verifyPublicKey(compressedPublicKey) // 验证公钥
