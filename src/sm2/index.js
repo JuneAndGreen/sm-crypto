@@ -62,6 +62,11 @@ function doEncrypt(msg, publicKey, cipherMode = 1) {
 function doDecrypt(encryptData, privateKey, cipherMode = 1, {
   output = 'string',
 } = {}) {
+  // 密文必须是纯 16 进制串，且至少包含 C1(64 字节) + C3(32 字节)
+  if (!_.isHexString(encryptData) || encryptData.length < 128 + 64) {
+    return output === 'array' ? [] : ''
+  }
+
   privateKey = new BigInteger(privateKey, 16)
 
   let c3 = encryptData.substr(128, 64)
@@ -186,6 +191,9 @@ function doVerifySignature(msg, signHex, publicKey, {der, hash = true, userId} =
       return false
     }
   } else {
+    // 非 der 签名必须是定长 r||s（各 32 字节）的纯 16 进制串，
+    // 避免非 16 进制字符或额外前导 0 产生同一签名的多种可通过验签的字符串
+    if (!_.isHexString(signHex) || signHex.length !== 128) return false
     r = new BigInteger(signHex.substring(0, 64), 16)
     s = new BigInteger(signHex.substring(64), 16)
   }

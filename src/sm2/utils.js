@@ -163,6 +163,13 @@ function hexToArray(hexStr) {
 }
 
 /**
+ * 是否为合法的 16 进制串（非空、偶数长度、仅含 0-9a-fA-F）
+ */
+function isHexString(str) {
+  return typeof str === 'string' && str.length > 0 && str.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(str)
+}
+
+/**
  * 验证公钥是否为椭圆曲线上的点
  */
 function verifyPublicKey(publicKey) {
@@ -206,6 +213,7 @@ module.exports = {
   arrayToHex,
   arrayToUtf8,
   hexToArray,
+  isHexString,
   verifyPublicKey,
   comparePublicKeyHex,
 }

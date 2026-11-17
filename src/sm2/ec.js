@@ -290,7 +290,7 @@ class ECCurveFp {
    * 解析 16 进制串为椭圆曲线点
    */
   decodePointHex(s) {
-    if (typeof s !== 'string' || s.length < 2 || s.length % 2 !== 0) return null
+    if (typeof s !== 'string' || s.length < 2 || s.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(s)) return null
     switch (parseInt(s.substr(0, 2), 16)) {
       // 第一个字节
       case 0:

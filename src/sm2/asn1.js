@@ -181,7 +181,9 @@ module.exports = {
    * 以避免签名可延展性（signature malleability）问题。
    */
   decodeDer(input) {
-    if (typeof input !== 'string' || input.length % 2 !== 0) {
+    // 必须是纯 16 进制字符：jsbn / parseInt 会静默跳过空格、+ 等非 16 进制字符，
+    // 不做校验会让同一签名存在多种可通过验签的字符串形式（签名可延展性）
+    if (typeof input !== 'string' || input.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(input)) {
       throw new Error('invalid DER: input must be a hex string of even length')
     }
 

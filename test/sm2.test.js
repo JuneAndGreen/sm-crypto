@@ -377,3 +377,49 @@ test('sm2: Uint8Array and Array with same bytes must produce mutually verifiable
     }
   }
 })
+
+// jsbn 的 BigInteger(str, 16) 与 parseInt 会静默跳过空格、+ 等非 16 进制字符，
+// 若不校验，同一签名可以构造出多个都能通过验签的字符串（签名可延展性）
+test('sm2: verify must reject non-hex characters in signature (signature malleability)', () => {
+  const msg = 'transfer 100 to alice'
+
+  // der：找一个 R 带 00 符号位的签名，把第一个 0 替换为非 16 进制字符
+  let der
+  do {
+    der = sm2.doSignature(msg, privateKey, {der: true})
+  } while (!/^30[0-9a-f]{2}022100/.test(der))
+  expect(sm2.doVerifySignature(msg, der, unCompressedPublicKey, {der: true})).toBe(true)
+  for (const ch of [' ', '+', '\t', '\n', '-', '.']) {
+    const forged = der.slice(0, 8) + ch + der.slice(9)
+    expect(sm2.doVerifySignature(msg, forged, unCompressedPublicKey, {der: true})).toBe(false)
+  }
+
+  // 非 der：r 以 0 开头时替换首字符
+  let raw
+  do {
+    raw = sm2.doSignature(msg, privateKey)
+  } while (raw[0] !== '0')
+  expect(sm2.doVerifySignature(msg, raw, unCompressedPublicKey)).toBe(true)
+  for (const ch of [' ', '+', '\t']) {
+    expect(sm2.doVerifySignature(msg, ch + raw.slice(1), unCompressedPublicKey)).toBe(false)
+  }
+
+  // 非 der：长度必须严格为 128，s 前补 00 / 尾部追加空白都要拒绝
+  expect(sm2.doVerifySignature(msg, raw.slice(0, 64) + '00' + raw.slice(64), unCompressedPublicKey)).toBe(false)
+  expect(sm2.doVerifySignature(msg, raw + '  ', unCompressedPublicKey)).toBe(false)
+  expect(sm2.doVerifySignature(msg, raw.slice(0, 126), unCompressedPublicKey)).toBe(false)
+  expect(sm2.doVerifySignature(msg, null, unCompressedPublicKey)).toBe(false)
+})
+
+test('sm2: reject non-hex public key and ciphertext', () => {
+  const pk = unCompressedPublicKey
+  // 公钥首字节 04 -> ' 4'，parseInt 会忽略前导空格
+  expect(sm2.verifyPublicKey(' ' + pk.slice(1))).toBe(false)
+  expect(sm2.verifyPublicKey(pk.slice(0, 2) + '+' + pk.slice(3))).toBe(false)
+
+  const encrypted = sm2.doEncrypt(msgString, pk, cipherMode)
+  expect(sm2.doDecrypt(encrypted, privateKey, cipherMode)).toBe(msgString)
+  const tampered = encrypted.slice(0, encrypted.length - 2) + ' ' + encrypted.slice(-1)
+  expect(sm2.doDecrypt(tampered, privateKey, cipherMode)).toBe('')
+  expect(sm2.doDecrypt(encrypted.slice(0, 100), privateKey, cipherMode)).toBe('')
+})
